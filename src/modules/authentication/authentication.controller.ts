@@ -21,7 +21,7 @@ export const authController = new Hono()
 
         try {
             const existingUser = await userRepo.findByUsername({ username: form.username })
-            if (existingUser.length > 0 || existingUser) {
+            if (existingUser.length > 0 || !existingUser) {
                 logger.info('Username already taken')
                 return appResponse(c, 400, 'username already taken', null)
             }
