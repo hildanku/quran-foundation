@@ -9,6 +9,7 @@ import { client } from '@/lib/rpc'
 import { appFetch } from '@/lib/app-fetch'
 import { StreakCounter } from '@/components/custom/streak-counter'
 import Loading from '@/components/ui/loading'
+import { RecordingHistory } from '@/components/custom/recording-history'
 
 export const Route = createFileRoute('/dashboard')({
     component: RouteComponent,
@@ -18,14 +19,11 @@ function RouteComponent() {
     return <DashboardPage />
 }
 
-
 type Recording = {
-    id: number
-    user: number | null
-    created_at: number
-    updated_at: number
-    file_url: string
-    note: string | null
+    id: string
+    fileUrl: string
+    note?: string
+    createdAt: string
 }
 
 function DashboardPage() {
@@ -49,7 +47,12 @@ function DashboardPage() {
         }
     })
 
-    const recordings: Recording[] = recordingsResponse?.result ?? []
+    const recordings: Recording[] = (recordingsResponse?.result ?? []).map((r: any) => ({
+        id: String(r.id),
+        fileUrl: r.file_url,
+        note: r.note ?? undefined,
+        createdAt: new Date(r.created_at * 1000).toISOString(),
+    }))
 
     const {
         data: streakData,
@@ -72,15 +75,17 @@ function DashboardPage() {
     const streakD = streakData?.result ?? []
     console.log(streakD)
     const today = new Date().toISOString().split("T")[0]
+
+
     const todayCompleted = recordings.some((recording) => {
-        const date = new Date(recording.created_at).toISOString().split("T")[0]
+        const date = recording.createdAt.split("T")[0]
         return date === today
     })
 
-    const completedDates = recordings.map((recording) =>
-        new Date(recording.created_at).toISOString().split("T")[0],
-    )
 
+    const completedDates = recordings.map((recording) =>
+        recording.createdAt.split("T")[0],
+    )
     const getInitials = (name: string) => {
         return name
             .split(" ")
@@ -173,6 +178,8 @@ function DashboardPage() {
                             </Card>
                         )}
 
+                        <RecordingHistory recordings={recordings} className="md:col-span-2 lg:col-span-2" />
+
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -189,7 +196,7 @@ function DashboardPage() {
                                     <div className="flex justify-between">
                                         <span className="text-sm text-muted-foreground">This Month</span>
                                         <span className="font-medium">
-                                            {recordings.filter((r) => new Date(r.created_at).getMonth() === new Date().getMonth()).length}
+                                            {recordings.filter((r) => new Date(r.createdAt).getMonth() === new Date().getMonth()).length}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
