@@ -4,9 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from '@/lib/stores/auth'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { BookOpen, Mic, Settings, User, LogOut } from 'lucide-react'
+import { BookOpen, Mic, Settings, User } from 'lucide-react'
 import { client } from '@/lib/rpc'
 import { appFetch } from '@/lib/app-fetch'
+import { StreakCounter } from '@/components/custom/streak-counter'
+import Loading from '@/components/ui/loading'
+import { RecordingHistory } from '@/components/custom/recording-history'
 
 export const Route = createFileRoute('/dashboard')({
     component: RouteComponent,
@@ -16,14 +19,11 @@ function RouteComponent() {
     return <DashboardPage />
 }
 
-
 type Recording = {
-    id: number
-    user: number | null
-    created_at: number
-    updated_at: number
-    file_url: string
-    note: string | null
+    id: string
+    fileUrl: string
+    note?: string
+    createdAt: string
 }
 
 function DashboardPage() {
@@ -33,7 +33,7 @@ function DashboardPage() {
     const {
         data: recordingsResponse,
         isLoading: recordingsLoading,
-        isError: recordingsError,
+        isError: _recordingsError,
     } = useQuery({
         queryKey: ['recordings'],
         queryFn: async () => {
@@ -47,25 +47,56 @@ function DashboardPage() {
         }
     })
 
-    const recordings: Recording[] = recordingsResponse?.result ?? []
+    const recordings: Recording[] = (recordingsResponse?.result ?? []).map((r: any) => ({
+        id: String(r.id),
+        fileUrl: r.file_url,
+        note: r.note ?? undefined,
+        createdAt: new Date(r.created_at * 1000).toISOString(),
+    }))
 
+    const {
+        data: streakData,
+        isLoading: streaksLoading,
+        isError: streaksError,
+    } = useQuery({
+        queryKey: ['streaks'],
+        queryFn: async () => {
+            const response = await client.api.v1.streaks.$get(
+                {},
+                {
+                    fetch: appFetch,
+                }
+            )
+            console.log(response)
+            return response.json()
+        }
+    })
+
+    const streakD = streakData?.result ?? []
+    console.log(streakD)
     const today = new Date().toISOString().split("T")[0]
+
+
     const todayCompleted = recordings.some((recording) => {
-        const date = new Date(recording.created_at).toISOString().split("T")[0]
+        const date = recording.createdAt.split("T")[0]
         return date === today
     })
 
 
     const completedDates = recordings.map((recording) =>
-        new Date(recording.created_at).toISOString().split("T")[0],
+        recording.createdAt.split("T")[0],
     )
-
     const getInitials = (name: string) => {
         return name
             .split(" ")
             .map((n) => n[0])
             .join("")
             .toUpperCase()
+    }
+
+
+    if (recordingsLoading || streaksLoading) {
+        <Loading />
     }
 
     return (
@@ -100,10 +131,8 @@ function DashboardPage() {
                     </div>
                 </header>
 
-                {/* Main Content */}
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {/* Today's Action */}
                         <Card className="md:col-span-2 lg:col-span-1">
                             <CardHeader>
                                 <CardTitle>Today's Reading</CardTitle>
@@ -132,6 +161,25 @@ function DashboardPage() {
                             </CardContent>
                         </Card>
 
+                        {streaksError ? (
+                            <Card className="md:col-span-2 lg:col-span-1 flex items-center justify-center min-h-[120px]">
+                                <CardContent>Error loading streak</CardContent>
+                            </Card>
+                        ) : streakD && streakD.length > 0 ? (
+                            <StreakCounter
+                                currentStreak={streakD[0].current_streak}
+                                longestStreak={streakD[0].longest_streak}
+                                todayCompleted={todayCompleted}
+                                className="md:col-span-2 lg:col-span-1"
+                            />
+                        ) : (
+                            <Card className="md:col-span-2 lg:col-span-1 flex items-center justify-center min-h-[120px]">
+                                <CardContent>No streak data</CardContent>
+                            </Card>
+                        )}
+
+                        <RecordingHistory recordings={recordings} className="md:col-span-2 lg:col-span-2" />
+
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -148,7 +196,7 @@ function DashboardPage() {
                                     <div className="flex justify-between">
                                         <span className="text-sm text-muted-foreground">This Month</span>
                                         <span className="font-medium">
-                                            {recordings.filter((r) => new Date(r.created_at).getMonth() === new Date().getMonth()).length}
+                                            {recordings.filter((r) => new Date(r.createdAt).getMonth() === new Date().getMonth()).length}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
