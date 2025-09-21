@@ -10,6 +10,7 @@ import { appFetch } from '@/lib/app-fetch'
 import { StreakCounter } from '@/components/custom/streak-counter'
 import Loading from '@/components/ui/loading'
 import { RecordingHistory } from '@/components/custom/recording-history'
+import { ProgressCalendar } from '@/components/custom/progress-calendar'
 
 export const Route = createFileRoute('/dashboard')({
     component: RouteComponent,
@@ -177,6 +178,8 @@ function DashboardPage() {
                                 <CardContent>No streak data</CardContent>
                             </Card>
                         )}
+
+                        <ProgressCalendar completedDates={completedDates} className="md:col-span-1 lg:col-span-1" />
 
                         <RecordingHistory recordings={recordings} className="md:col-span-2 lg:col-span-2" />
 
