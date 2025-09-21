@@ -102,24 +102,32 @@ export const recordingsController = new Hono()
     .post('/upload', async (c) => {
         const repo = new RecordingsRepository()
         const userRepo = new UserRepository()
+
+        console.log('diatas try catch')
         try {
             const accessToken = c.req.header('Authorization') || ''
             const user = await userRepo.findByToken({ token: accessToken })
-            
+            console.log('accessToken', accessToken)
+            console.log('console', user?.name)
             if (!user || !user.id) {
                 return appResponse(c, 401, 'User not authenticated', null)
             }
 
             const userId = user.id
-            
+            console.log(userId, 'userid')
+
+            // parsing
             const formData = await c.req.formData()
             const audioFile = formData.get('audio') as File | null
             const note = formData.get('note') as string | null
 
+            console.log('lewat sini ga')
+            console.log('audioFile:', audioFile)
+
             if (!audioFile) {
                 return appResponse(c, 400, 'No audio file provided', null)
             }
-
+            console.log('sampe131 ga?')
             const buffer = Buffer.from(await audioFile.arrayBuffer())
             const uploadedFile: UploadedFile = {
                 buffer,
@@ -146,13 +154,13 @@ export const recordingsController = new Hono()
             }
 
             const record = await repo.create(recordingData)
-            
+
             return appResponse(c, 201, 'Recording uploaded and saved successfully', {
                 recording: record,
                 fileUrl: uploadResult.fileUrl,
             })
         } catch (error) {
-            logger.error('Upload error:', error)
+            logger.error('Upload error di controller164:', error)
             return appResponse(c, 500, 'Failed to upload recording', null)
         }
     })
@@ -161,7 +169,7 @@ export const recordingsController = new Hono()
         try {
             const accessToken = c.req.header('Authorization') || ''
             const user = await userRepo.findByToken({ token: accessToken })
-            
+
             if (!user || !user.id) {
                 return appResponse(c, 401, 'User not authenticated', null)
             }
@@ -170,7 +178,7 @@ export const recordingsController = new Hono()
             const userId = user.id
 
             const result = await RecordingsService.generateUploadUrl(filename, userId)
-            
+
             return appResponse(c, 200, 'Upload URL generated successfully', {
                 uploadUrl: result.uploadUrl,
                 filePath: result.filePath,
@@ -186,7 +194,7 @@ export const recordingsController = new Hono()
         try {
             const accessToken = c.req.header('Authorization') || ''
             const user = await userRepo.findByToken({ token: accessToken })
-            
+
             if (!user || !user.id) {
                 return appResponse(c, 401, 'User not authenticated', null)
             }
@@ -201,7 +209,7 @@ export const recordingsController = new Hono()
             }
 
             const record = await repo.create(recordingData)
-            
+
             return appResponse(c, 201, 'Recording confirmed and saved successfully', record)
         } catch (error) {
             logger.error('Confirm upload error:', error)
