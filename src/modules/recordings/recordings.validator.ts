@@ -6,3 +6,11 @@ export const recordingValidator = z.object({
     file_url: z.string().url(),
     note: z.string().optional(),
 })
+
+export const uploadFileValidator = z.object({
+    note: z.string().optional(),
+})
+
+export const generateUploadUrlValidator = z.object({
+    filename: z.string().min(1, 'Filename is required'),
+})
