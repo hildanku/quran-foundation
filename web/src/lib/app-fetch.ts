@@ -1,6 +1,12 @@
-export const appFetch = async (input: RequestInfo, init: RequestInit = {}) => {
-    const token = localStorage.getItem('access_token')
+import type { ExecutionContext } from "hono"
 
+export const appFetch: (
+    input: URL | RequestInfo,
+    init?: RequestInit,
+    Env?: any,
+    executionCtx?: ExecutionContext
+) => Promise<Response> = async (input, init = {}, _env?, _executionCtx?) => {
+    const token = localStorage.getItem('access_token')
     const headers = new Headers(init.headers || {})
     if (token) {
         headers.set('Authorization', `${token}`)
