@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RecordRouteImport } from './routes/record'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as BackofficeRouteImport } from './routes/_backoffice'
@@ -18,6 +21,21 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as BackofficeManagementIndexRouteImport } from './routes/_backoffice/management/index'
 import { Route as BackofficeManagementUsersIndexRouteImport } from './routes/_backoffice/management/users/index'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecordRoute = RecordRouteImport.update({
+  id: '/record',
+  path: '/record',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -63,6 +81,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/dashboard': typeof DashboardRoute
+  '/record': typeof RecordRoute
+  '/settings': typeof SettingsRoute
   '/login': typeof AuthLoginRoute
   '/management': typeof BackofficeManagementIndexRoute
   '/management/users': typeof BackofficeManagementUsersIndexRoute
@@ -71,6 +92,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/dashboard': typeof DashboardRoute
+  '/record': typeof RecordRoute
+  '/settings': typeof SettingsRoute
   '/login': typeof AuthLoginRoute
   '/management': typeof BackofficeManagementIndexRoute
   '/management/users': typeof BackofficeManagementUsersIndexRoute
@@ -82,6 +106,9 @@ export interface FileRoutesById {
   '/_backoffice': typeof BackofficeRouteWithChildren
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/dashboard': typeof DashboardRoute
+  '/record': typeof RecordRoute
+  '/settings': typeof SettingsRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_backoffice/management/': typeof BackofficeManagementIndexRoute
   '/_backoffice/management/users/': typeof BackofficeManagementUsersIndexRoute
@@ -92,11 +119,23 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/dashboard'
+    | '/record'
+    | '/settings'
     | '/login'
     | '/management'
     | '/management/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/blog' | '/login' | '/management' | '/management/users'
+  to:
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/dashboard'
+    | '/record'
+    | '/settings'
+    | '/login'
+    | '/management'
+    | '/management/users'
   id:
     | '__root__'
     | '/'
@@ -104,6 +143,9 @@ export interface FileRouteTypes {
     | '/_backoffice'
     | '/about'
     | '/blog'
+    | '/dashboard'
+    | '/record'
+    | '/settings'
     | '/_auth/login'
     | '/_backoffice/management/'
     | '/_backoffice/management/users/'
@@ -115,10 +157,34 @@ export interface RootRouteChildren {
   BackofficeRoute: typeof BackofficeRouteWithChildren
   AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRoute
+  DashboardRoute: typeof DashboardRoute
+  RecordRoute: typeof RecordRoute
+  SettingsRoute: typeof SettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/record': {
+      id: '/record'
+      path: '/record'
+      fullPath: '/record'
+      preLoaderRoute: typeof RecordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -208,6 +274,9 @@ const rootRouteChildren: RootRouteChildren = {
   BackofficeRoute: BackofficeRouteWithChildren,
   AboutRoute: AboutRoute,
   BlogRoute: BlogRoute,
+  DashboardRoute: DashboardRoute,
+  RecordRoute: RecordRoute,
+  SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
