@@ -12,6 +12,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/stores/auth'
+import { BookOpen } from 'lucide-react'
 
 export const Route = createFileRoute('/_auth/login')({
     component: LoginPage,
@@ -58,9 +59,14 @@ function LoginPage() {
     return (
         <Form {...form}>
             <Card className='mx-auto max-w-sm'>
-                <CardHeader>
-                    <CardTitle className='text-2xl'>Login</CardTitle>
-                    <CardDescription>Enter your email below to login to your account</CardDescription>
+                <CardHeader className="text-center">
+                    <div className="flex justify-center mb-4">
+                        <div className="p-3 bg-primary rounded-full">
+                            <BookOpen className="h-8 w-8 text-primary-foreground" />
+                        </div>
+                    </div>
+                    <CardTitle className="text-2xl font-bold">Welcome to DailyQuran</CardTitle>
+                    <CardDescription>Sign in to continue your daily Quran reading journey</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={form.handleSubmit(submit)}>
@@ -106,7 +112,7 @@ function LoginPage() {
                         </div>
                         <div className='mt-4 text-center text-sm'>
                             Don&apos;t have an account?{' '}
-                            <Link to='/management' className='underline'>
+                            <Link to='/register' className='underline'>
                                 Register
                             </Link>
                         </div>
