@@ -3,7 +3,19 @@ import { db } from '../../config/db/index.js'
 import { recordingTable, streakTable, type Recording } from '../../config/db/schema/postgres.js'
 import { JWTService } from '../../lib/middleware/jwt.js'
 import type { BaseRepository } from '../../lib/repository.js'
-import { eq } from 'drizzle-orm'
+import { eq, count, desc } from 'drizzle-orm'
+
+export interface PaginationMetadata {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
+}
+
+export interface PaginatedResult<T> {
+    data: T[]
+    metadata: PaginationMetadata
+}
 
 export interface RecordEntity extends Recording { }
 
@@ -69,9 +81,9 @@ export class RecordingsRepository implements BaseRepository<RecordEntity> {
     async findByUserId(userId: number) {
         const streaks = await db
             .select()
-            .from(streakTable)
+            .from(recordingTable)
             .where(
-                eq(streakTable.user, userId)
+                eq(recordingTable.user, userId)
             )
         return streaks.length > 0 ? streaks[0] : null
     }
@@ -80,6 +92,46 @@ export class RecordingsRepository implements BaseRepository<RecordEntity> {
         const claims = JWTService.decode(token)
         if (claims && claims.sub) {
             return this.findByUserId(Number(claims.sub))
+        }
+        return null
+    }
+
+    async listByUser(userId: number, page: number = 1, limit: number = 10): Promise<PaginatedResult<RecordEntity>> {
+        const validPage = Math.max(1, Math.floor(page))
+        const validLimit = Math.max(1, Math.min(100, Math.floor(limit)))
+        const offset = (validPage - 1) * validLimit
+
+        const totalResult = await db
+            .select({ count: count() })
+            .from(recordingTable)
+            .where(eq(recordingTable.user, userId))
+
+        const total = totalResult[0]?.count || 0
+        const total_pages = Math.ceil(total / validLimit)
+
+        const records = await db
+            .select()
+            .from(recordingTable)
+            .where(eq(recordingTable.user, userId))
+            .orderBy(desc(recordingTable.created_at))
+            .limit(validLimit)
+            .offset(offset)
+
+        return {
+            data: records,
+            metadata: {
+                page: validPage,
+                limit: validLimit,
+                total,
+                total_pages
+            }
+        }
+    }
+
+    async listByToken(token: string, page: number = 1, limit: number = 10): Promise<PaginatedResult<RecordEntity> | null> {
+        const claims = JWTService.decode(token)
+        if (claims && claims.sub) {
+            return this.listByUser(Number(claims.sub), page, limit)
         }
         return null
     }

@@ -20,21 +20,14 @@ function RouteComponent() {
     return <DashboardPage />
 }
 
-type Recording = {
-    id: string
-    fileUrl: string
-    note?: string
-    createdAt: string
-}
-
 function DashboardPage() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
 
     const {
-        data: recordingsResponse,
-        isLoading: recordingsLoading,
-        isError: _recordingsError,
+        data: recordingsResult,
+        isLoading: isRecordingsLoading,
+        isError: isRecordingsError,
     } = useQuery({
         queryKey: ['recordings'],
         queryFn: async () => {
@@ -48,44 +41,37 @@ function DashboardPage() {
         }
     })
 
-    const recordings: Recording[] = (recordingsResponse?.result ?? []).map((r: any) => ({
-        id: String(r.id),
-        fileUrl: r.file_url,
-        note: r.note ?? undefined,
-        createdAt: new Date(r.created_at * 1000).toISOString(),
-    }))
+    const recordings = recordingsResult?.result?.data || []
 
     const {
-        data: streakData,
-        isLoading: streaksLoading,
-        isError: streaksError,
+        data: streaksResult,
+        isLoading: isStreaksLoading,
+        isError: isStreaksError,
     } = useQuery({
         queryKey: ['streaks'],
         queryFn: async () => {
-            const response = await client.api.v1.streaks.$get(
+            const response = await client.api.v1.streaks.user.$get(
                 {},
                 {
                     fetch: appFetch,
                 }
             )
-            console.log(response)
             return response.json()
         }
     })
 
-    const streakD = streakData?.result ?? []
-    console.log(streakD)
+    const streaks = streaksResult?.result ?? null
+
     const today = new Date().toISOString().split("T")[0]
 
-
     const todayCompleted = recordings.some((recording) => {
-        const date = recording.createdAt.split("T")[0]
+        const date = new Date(recording.created_at * 1000).toISOString().split("T")[0]
         return date === today
     })
 
 
     const completedDates = recordings.map((recording) =>
-        recording.createdAt.split("T")[0],
+        new Date(recording.created_at * 1000).toISOString().split("T")[0],
     )
     const getInitials = (name: string) => {
         return name
@@ -96,8 +82,8 @@ function DashboardPage() {
     }
 
 
-    if (recordingsLoading || streaksLoading) {
-        <Loading />
+    if (isRecordingsLoading || isStreaksLoading) {
+        return <Loading />
     }
 
     return (
@@ -162,14 +148,14 @@ function DashboardPage() {
                             </CardContent>
                         </Card>
 
-                        {streaksError ? (
+                        {isStreaksError ? (
                             <Card className="md:col-span-2 lg:col-span-1 flex items-center justify-center min-h-[120px]">
                                 <CardContent>Error loading streak</CardContent>
                             </Card>
-                        ) : streakD && streakD.length > 0 ? (
+                        ) : streaks ? (
                             <StreakCounter
-                                currentStreak={streakD[0].current_streak}
-                                longestStreak={streakD[0].longest_streak}
+                                currentStreak={streaks.current_streak}
+                                longestStreak={streaks.longest_streak}
                                 todayCompleted={todayCompleted}
                                 className="md:col-span-2 lg:col-span-1"
                             />
@@ -194,18 +180,18 @@ function DashboardPage() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between">
                                         <span className="text-sm text-muted-foreground">Total Recordings</span>
-                                        <span className="font-medium">{recordings.length}</span>
+                                        <span className="font-medium">{recordings?.length ?? 0}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-sm text-muted-foreground">This Month</span>
                                         <span className="font-medium">
-                                            {recordings.filter((r) => new Date(r.createdAt).getMonth() === new Date().getMonth()).length}
+                                            {recordings?.filter((r) => new Date(r.created_at * 1000).getMonth() === new Date().getMonth()).length ?? 0}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-sm text-muted-foreground">Success Rate</span>
                                         <span className="font-medium">
-                                            {recordings.length > 0 ? Math.round((completedDates.length / new Date().getDate()) * 100) : 0}%
+                                            {(recordings?.length ?? 0) > 0 ? Math.round((completedDates.length / new Date().getDate()) * 100) : 0}%
                                         </span>
                                     </div>
                                 </div>

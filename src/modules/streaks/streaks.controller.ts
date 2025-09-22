@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono } from "hono"
 import { roleMiddleware } from "../../lib/middleware/middleware.js";
 import { StreaksRepository } from "./streaks.repository.js";
 import { appResponse } from "../../lib/response.js";
@@ -6,6 +6,7 @@ import { FOUND, NOT_FOUND, SOMETHING_WHEN_WRONG } from "../../lib/constant.js";
 import { logger } from "../../config/logging.js";
 import { zValidator } from "@hono/zod-validator";
 import { streakValidator } from "./streaks.validator.js";
+import { UserRepository } from "../user/user.repository.js";
 
 export const streaksController = new Hono()
     .use(
@@ -17,8 +18,27 @@ export const streaksController = new Hono()
             delete: ['member', 'admin']
         })
     )
-
-    .get('/', async c => {
+    .get('/user', async (c) => {
+        const repo = new StreaksRepository()
+        const userRepo = new UserRepository()
+        const token = c.req.header('Authorization')!
+        try {
+            const user = await userRepo.findByToken({ token: token })
+            if (!user) {
+                return appResponse(c, 404, NOT_FOUND, null)
+            }
+            console.log(user.id)
+            const streak = await repo.findByUser(user.id)
+            if (!streak) {
+                return appResponse(c, 404, `Streak ${NOT_FOUND}`, null)
+            }
+            return appResponse(c, 200, `Streak ${FOUND}`, streak)
+        } catch (error) {
+            logger.error(error)
+            return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
+        }
+    })
+    .get('/', async (c) => {
         const repo = new StreaksRepository()
         try {
             const streaks = await repo.list()
@@ -31,7 +51,7 @@ export const streaksController = new Hono()
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
         }
     })
-    .get('/:id', async c => {
+    .get('/:id', async (c) => {
         const repo = new StreaksRepository()
         try {
             const id = Number(c.req.param('id'))
@@ -48,7 +68,7 @@ export const streaksController = new Hono()
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
         }
     })
-    .post('/', zValidator('form', streakValidator), async c => {
+    .post('/', zValidator('form', streakValidator), async (c) => {
         const repo = new StreaksRepository()
         const form = c.req.valid('form')
         try {
@@ -59,7 +79,7 @@ export const streaksController = new Hono()
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
         }
     })
-    .put('/:id', zValidator('form', streakValidator.partial()), async c => {
+    .put('/:id', zValidator('form', streakValidator.partial()), async (c) => {
         const repo = new StreaksRepository()
         const form = c.req.valid('form')
         try {
@@ -74,7 +94,7 @@ export const streaksController = new Hono()
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
         }
     })
-    .delete('/:id', async c => {
+    .delete('/:id', async (c) => {
         const repo = new StreaksRepository()
         try {
             const id = Number(c.req.param('id'))
@@ -91,20 +111,4 @@ export const streaksController = new Hono()
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
         }
     })
-    .get('/user/:userId', async c => {
-        const repo = new StreaksRepository()
-        try {
-            const userId = Number(c.req.param('userId'))
-            if (!Number.isFinite(userId)) {
-                return appResponse(c, 400, 'Invalid user id', null)
-            }
-            const streak = await repo.findByUser(userId)
-            if (!streak) {
-                return appResponse(c, 404, `Streak ${NOT_FOUND}`, null)
-            }
-            return appResponse(c, 200, `Streak ${FOUND}`, streak)
-        } catch (error) {
-            logger.error(error)
-            return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
-        }
-    })
+
