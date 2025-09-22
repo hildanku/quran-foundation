@@ -11,6 +11,7 @@ import { StreakCounter } from '@/components/custom/streak-counter'
 import Loading from '@/components/ui/loading'
 import { RecordingHistory } from '@/components/custom/recording-history'
 import { ProgressCalendar } from '@/components/custom/progress-calendar'
+import { SurahList } from '@/components/custom/surah-list'
 
 export const Route = createFileRoute('/dashboard')({
     component: RouteComponent,
@@ -81,6 +82,11 @@ function DashboardPage() {
             .toUpperCase()
     }
 
+
+    const handleSurahClick = (surah: any) => {
+        // TODO: Navigate to surah detail page when implemented
+        console.log("[v0] Surah clicked:", surah.name_simple)
+    }
 
     if (isRecordingsLoading || isStreaksLoading) {
         return <Loading />
@@ -166,6 +172,19 @@ function DashboardPage() {
                         )}
 
                         <ProgressCalendar completedDates={completedDates} className="md:col-span-1 lg:col-span-1" />
+
+                        <Card className="md:col-span-2 lg:col-span-3">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <BookOpen className="h-5 w-5" />
+                                    Choose a Surah
+                                </CardTitle>
+                                <CardDescription>Select a chapter from the Quran to read and record</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <SurahList onSurahClick={handleSurahClick} />
+                            </CardContent>
+                        </Card>
 
                         <RecordingHistory recordings={recordings} className="md:col-span-2 lg:col-span-2" />
 
