@@ -84,8 +84,10 @@ function DashboardPage() {
 
 
     const handleSurahClick = (surah: any) => {
-        // TODO: Navigate to surah detail page when implemented
-        console.log("[v0] Surah clicked:", surah.name_simple)
+        navigate({ 
+            to: "/record", 
+            search: { surahId: surah.id, surahName: surah.name_simple } 
+        })
     }
 
     if (isRecordingsLoading || isStreaksLoading) {

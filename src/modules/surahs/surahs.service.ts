@@ -27,7 +27,7 @@ export async function getAccessToken(): Promise<string> {
 
     try {
         const credentials = btoa(`${clientId}:${clientSecret}`)
-        
+
         const response = await fetch('https://prelive-oauth2.quran.foundation/oauth2/token', {
             method: 'POST',
             headers: {
@@ -69,6 +69,90 @@ export async function fetchChapters(): Promise<any> {
     }
 
     const response = await fetch('https://apis-prelive.quran.foundation/content/api/v4/chapters', {
+        method: 'GET',
+        headers: {
+            'x-auth-token': accessToken,
+            'x-client-id': clientId,
+            'Content-Type': 'application/json',
+        },
+    })
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            tokenCache = null
+            throw new Error('UNAUTHORIZED')
+        } else if (response.status >= 500) {
+            throw new Error('BAD_GATEWAY')
+        } else {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+    }
+
+    return await response.json()
+}
+
+export async function fetchVersesByChapter(chapterNumber: number, options?: {
+    language?: string
+    words?: boolean
+    translations?: string
+    page?: number
+    per_page?: number
+}): Promise<any> {
+    const accessToken = await getAccessToken()
+    const clientId = process.env.QF_CLIENT_ID
+
+    if (!clientId) {
+        throw new Error('QF_CLIENT_ID environment variable is required')
+    }
+
+    // Build query parameters
+    const queryParams = new URLSearchParams()
+    if (options?.language) queryParams.append('language', options.language)
+    if (options?.words !== undefined) queryParams.append('words', options.words.toString())
+    if (options?.translations) queryParams.append('translations', options.translations)
+    if (options?.page) queryParams.append('page', options.page.toString())
+    if (options?.per_page) queryParams.append('per_page', options.per_page.toString())
+
+    const url = `https://apis-prelive.quran.foundation/content/api/v4/verses/by_chapter/${chapterNumber}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'x-auth-token': accessToken,
+            'x-client-id': clientId,
+            'Content-Type': 'application/json',
+        },
+    })
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            tokenCache = null
+            throw new Error('UNAUTHORIZED')
+        } else if (response.status >= 500) {
+            throw new Error('BAD_GATEWAY')
+        } else {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+    }
+
+    return await response.json()
+}
+
+// Additional function to get Uthmani text if needed
+export async function fetchUthmanVersesByChapter(chapterNumber: number): Promise<any> {
+    const accessToken = await getAccessToken()
+    const clientId = process.env.QF_CLIENT_ID
+
+    if (!clientId) {
+        throw new Error('QF_CLIENT_ID environment variable is required')
+    }
+
+    const queryParams = new URLSearchParams()
+    queryParams.append('chapter_number', chapterNumber.toString())
+
+    const url = `https://apis-prelive.quran.foundation/content/api/v4/quran/verses/uthmani?${queryParams.toString()}`
+
+    const response = await fetch(url, {
         method: 'GET',
         headers: {
             'x-auth-token': accessToken,
