@@ -5,14 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { BookOpen } from 'lucide-react'
-import { useState } from 'react'
-
 import { client } from '@/lib/rpc'
-import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { useMutation } from '@tanstack/react-query'
+import { Spinner } from '@/components/ui/spinner'
+import { useToast } from '@/hooks/use-toast'
 
 const registerSchema = z
     .object({
@@ -35,7 +35,6 @@ export const Route = createFileRoute('/_auth/register')({
 })
 
 function RegisterPage() {
-    const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()
     const navigate = useNavigate()
 
@@ -52,9 +51,8 @@ function RegisterPage() {
         mode: 'all',
     })
 
-    const onSubmit = async (values: RegisterFormValues) => {
-        setIsLoading(true)
-        try {
+    const registerMutation = useMutation({
+        mutationFn: async (values: z.infer<typeof registerSchema>) => {
             const res = await client.api.v1.auth.register.$post({
                 form: {
                     username: values.username,
@@ -63,28 +61,36 @@ function RegisterPage() {
                     password: values.password,
                 },
             })
-
             if (!res.ok) {
+                toast({
+                    title: 'Error!',
+                    description: 'Something went wrong.',
+                    variant: 'destructive',
+                })
+
                 throw new Error('Failed to register')
             }
-
-            await res.json()
-
+            return res.json()
+        },
+        onSuccess: () => {
             toast({
-                title: 'Welcome to DailyQuran!',
+                title: 'Success!',
                 description: 'Your account has been created successfully.',
-            })
-
-            navigate({ to: '/login' })
-        } catch (error) {
-            toast({
-                title: 'Registration failed',
-                description: 'Please try again with different credentials.',
                 variant: 'destructive',
             })
-        } finally {
-            setIsLoading(false)
+            navigate({ to: '/login' })
+        },
+        onError: () => {
+            toast({
+                title: 'Error!',
+                description: 'Something went wrong.',
+                variant: 'destructive',
+            })
         }
+    })
+
+    const onSubmit = (values: z.infer<typeof registerSchema>) => {
+        registerMutation.mutate(values)
     }
 
     return (
@@ -174,8 +180,9 @@ function RegisterPage() {
                                 )}
                             />
 
-                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading ? 'Creating account...' : 'Create Account'}
+                            <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                                {registerMutation.isPending && <Spinner />}
+                                <span>Register</span>
                             </Button>
                         </form>
                     </Form>

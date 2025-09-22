@@ -9,19 +9,19 @@ import { loginSchema } from '@/lib/zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'sonner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/stores/auth'
 import { BookOpen } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export const Route = createFileRoute('/_auth/login')({
     component: LoginPage,
 })
 
-
 function LoginPage() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
+    const { toast } = useToast()
     const auth = useAuth()
     const form = useForm<z.infer<typeof loginSchema>>({
         mode: 'all',
@@ -36,19 +36,24 @@ function LoginPage() {
         mutationFn: async (data: z.infer<typeof loginSchema>) => {
             const user = await auth.login(data.username, data.password)
             if (!user) {
-                toast.error('Error njay')
                 throw new Error('Error')
             }
             return user
         },
         onSuccess: () => {
-            toast.success('Login berhasil')
             queryClient.invalidateQueries({ queryKey: ['user'] })
-            navigate({ to: '/management' })
+            toast({
+                title: 'Welcome to DailyQuran!',
+                description: 'You have successfully logged in.',
+            })
+            navigate({ to: '/dashboard' })
         },
-        onError: (error: any) => {
-            console.error(error)
-            toast.error(error?.message || 'Terjadi kesalahan saat login')
+        onError: () => {
+            toast({
+                title: 'Error!',
+                description: 'Something went wrong.',
+                variant: 'destructive',
+            })
         },
     })
 
