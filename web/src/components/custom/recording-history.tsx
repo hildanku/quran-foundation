@@ -7,10 +7,12 @@ import { Play, Calendar, Clock } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 
 interface Recording {
-    id: string
-    fileUrl: string
-    note?: string
-    createdAt: string
+    id: number
+    file_url: string
+    note: string | null
+    created_at: number
+    updated_at: number
+    user: number | null
 }
 
 interface RecordingHistoryProps {
@@ -47,10 +49,10 @@ export function RecordingHistory({ recordings, className }: RecordingHistoryProp
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Clock className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm font-medium">{formatDuration(recording.fileUrl)}</span>
+                                        <span className="text-sm font-medium">{formatDuration(recording.file_url)}</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(recording.createdAt), { addSuffix: true })}
+                                        {formatDistanceToNow(new Date(recording.created_at * 1000), { addSuffix: true })}
                                     </p>
                                     {recording.note && <p className="text-xs text-muted-foreground mt-1">{recording.note}</p>}
                                 </div>

@@ -10,6 +10,7 @@ import { logger } from '../../config/logging.js'
 import { recordingValidator, generateUploadUrlValidator } from './recordings.validator.js'
 import { type UploadedFile } from '../../lib/middleware/file-upload.js'
 import { StreaksRepository } from '../streaks/streaks.repository.js'
+import { paginationQueryValidator } from '../../lib/zod.js'
 
 export const recordingsController = new Hono()
     .use(
@@ -21,6 +22,38 @@ export const recordingsController = new Hono()
             delete: ['admin'],
         }),
     )
+    // test endpoint because idk when i hit /user it always exec /:id
+    // WIP: Remove /something endpoint
+    .get('/something', async (c) => {
+        return appResponse(c, 200, 'ok', null)
+    })
+    .get('/user', zValidator('query', paginationQueryValidator), async (c) => {
+        const repo = new RecordingsRepository()
+        const token = c.req.header('Authorization')!
+        const { page, limit } = c.req.valid('query')
+
+        try {
+            const result = await repo.listByToken(token, page, limit)
+            if (!result) {
+                return appResponse(c, 404, NOT_FOUND, null)
+            }
+
+            if (result.data.length === 0) {
+                return appResponse(c, 200, 'No recordings found', {
+                    data: [],
+                    metadata: result.metadata
+                })
+            }
+
+            return appResponse(c, 200, FOUND, {
+                data: result.data,
+                metadata: result.metadata
+            })
+        } catch (error) {
+            logger.error(error)
+            return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
+        }
+    })
     .get('/', async (c) => {
         const repo = new RecordingsRepository()
         try {
@@ -95,20 +128,6 @@ export const recordingsController = new Hono()
                 return appResponse(c, 404, `Recording ${NOT_FOUND}`, null)
             }
             return appResponse(c, 200, 'Recording deleted', true)
-        } catch (error) {
-            logger.error(error)
-            return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
-        }
-    })
-    .get('/user/', async (c) => {
-        const repo = new RecordingsRepository()
-        const token = c.req.header('Authorization')!
-        try {
-            const records = await repo.findByToken(token)
-            if (!records) {
-                return appResponse(c, 404, NOT_FOUND, null)
-            }
-            return appResponse(c, 200, FOUND, records)
         } catch (error) {
             logger.error(error)
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
