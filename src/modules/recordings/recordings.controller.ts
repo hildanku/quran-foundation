@@ -9,6 +9,7 @@ import { roleMiddleware } from '../../lib/middleware/middleware.js'
 import { logger } from '../../config/logging.js'
 import { recordingValidator, generateUploadUrlValidator } from './recordings.validator.js'
 import { type UploadedFile } from '../../lib/middleware/file-upload.js'
+import { StreaksRepository } from '../streaks/streaks.repository.js'
 
 export const recordingsController = new Hono()
     .use(
@@ -99,9 +100,24 @@ export const recordingsController = new Hono()
             return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
         }
     })
+    .get('/user/', async (c) => {
+        const repo = new RecordingsRepository()
+        const token = c.req.header('Authorization')!
+        try {
+            const records = await repo.findByToken(token)
+            if (!records) {
+                return appResponse(c, 404, NOT_FOUND, null)
+            }
+            return appResponse(c, 200, FOUND, records)
+        } catch (error) {
+            logger.error(error)
+            return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
+        }
+    })
     .post('/upload', async (c) => {
         const repo = new RecordingsRepository()
         const userRepo = new UserRepository()
+        const streakRepo = new StreaksRepository()
 
         console.log('diatas try catch')
         try {
@@ -154,6 +170,25 @@ export const recordingsController = new Hono()
             }
 
             const record = await repo.create(recordingData)
+
+            const getStreak = await streakRepo.findByUser(userId)
+            if (!getStreak) {
+                await streakRepo.create({
+                    user: userId,
+                    current_streak: 1,
+                    longest_streak: 1,
+                    last_recorded_at: Math.floor(Date.now() / 1000),
+                })
+            } else {
+                const newCurrentStreak = getStreak.current_streak + 1
+                const newLongestStreak = Math.max(newCurrentStreak, getStreak.longest_streak)
+
+                await streakRepo.update(getStreak.id, {
+                    current_streak: newCurrentStreak,
+                    longest_streak: newLongestStreak,
+                    last_recorded_at: Math.floor(Date.now() / 1000),
+                })
+            }
 
             return appResponse(c, 201, 'Recording uploaded and saved successfully', {
                 recording: record,

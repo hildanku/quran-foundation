@@ -38,7 +38,7 @@ function DashboardPage() {
     } = useQuery({
         queryKey: ['recordings'],
         queryFn: async () => {
-            const response = await client.api.v1.recordings.$get(
+            const response = await client.api.v1.recordings.user.$get(
                 {},
                 {
                     fetch: appFetch,

@@ -1,6 +1,7 @@
 
 import { db } from '../../config/db/index.js'
-import { recordingTable, type Recording } from '../../config/db/schema/postgres.js'
+import { recordingTable, streakTable, type Recording } from '../../config/db/schema/postgres.js'
+import { JWTService } from '../../lib/middleware/jwt.js'
 import type { BaseRepository } from '../../lib/repository.js'
 import { eq } from 'drizzle-orm'
 
@@ -63,6 +64,24 @@ export class RecordingsRepository implements BaseRepository<RecordEntity> {
             console.error(error)
             return false
         }
+    }
+
+    async findByUserId(userId: number) {
+        const streaks = await db
+            .select()
+            .from(streakTable)
+            .where(
+                eq(streakTable.user, userId)
+            )
+        return streaks.length > 0 ? streaks[0] : null
+    }
+
+    async findByToken(token: string) {
+        const claims = JWTService.decode(token)
+        if (claims && claims.sub) {
+            return this.findByUserId(Number(claims.sub))
+        }
+        return null
     }
 }
 
