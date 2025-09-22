@@ -17,6 +17,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as BackofficeRouteImport } from './routes/_backoffice'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as BackofficeManagementIndexRouteImport } from './routes/_backoffice/management/index'
 import { Route as BackofficeManagementUsersIndexRouteImport } from './routes/_backoffice/management/users/index'
@@ -59,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/record': typeof RecordRoute
   '/settings': typeof SettingsRoute
   '/login': typeof AuthLoginRoute
+  '/register': typeof AuthRegisterRoute
   '/management': typeof BackofficeManagementIndexRoute
   '/management/users': typeof BackofficeManagementUsersIndexRoute
 }
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/record': typeof RecordRoute
   '/settings': typeof SettingsRoute
   '/login': typeof AuthLoginRoute
+  '/register': typeof AuthRegisterRoute
   '/management': typeof BackofficeManagementIndexRoute
   '/management/users': typeof BackofficeManagementUsersIndexRoute
 }
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/record': typeof RecordRoute
   '/settings': typeof SettingsRoute
   '/_auth/login': typeof AuthLoginRoute
+  '/_auth/register': typeof AuthRegisterRoute
   '/_backoffice/management/': typeof BackofficeManagementIndexRoute
   '/_backoffice/management/users/': typeof BackofficeManagementUsersIndexRoute
 }
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/record'
     | '/settings'
     | '/login'
+    | '/register'
     | '/management'
     | '/management/users'
   fileRoutesByTo: FileRoutesByTo
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/record'
     | '/settings'
     | '/login'
+    | '/register'
     | '/management'
     | '/management/users'
   id:
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/record'
     | '/settings'
     | '/_auth/login'
+    | '/_auth/register'
     | '/_backoffice/management/'
     | '/_backoffice/management/users/'
   fileRoutesById: FileRoutesById
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/register': {
+      id: '/_auth/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/login': {
       id: '/_auth/login'
       path: '/login'
@@ -246,10 +265,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
