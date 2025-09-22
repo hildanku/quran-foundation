@@ -51,6 +51,7 @@ export const recordingTable = pgTable('recordings', {
     user: integer('user').references(() => userTable.id, { onDelete: 'cascade' }),
     file_url: text('file_url').notNull(),
     note: text('note'),
+    chapter_id: integer('chapter_id')
 })
 
 export type Recording = typeof recordingTable.$inferSelect
