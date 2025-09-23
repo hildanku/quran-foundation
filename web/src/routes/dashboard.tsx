@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from '@/lib/stores/auth'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { BookOpen, Mic, Settings, User } from 'lucide-react'
+import { BookOpen, Mic, Settings, User, LogOut } from 'lucide-react'
 import { client } from '@/lib/rpc'
 import { appFetch } from '@/lib/app-fetch'
 import { StreakCounter } from '@/components/custom/streak-counter'
@@ -39,9 +39,17 @@ function DashboardPage() {
                 }
             )
             return response.json()
+        },
+        retry: (failureCount, error: any) => {
+            // Don't retry on 404 or client errors (4xx)
+            if (error?.status >= 400 && error?.status < 500) {
+                return false
+            }
+            return failureCount < 3
         }
     })
 
+    // Fallback to empty array if error or no data
     const recordings = recordingsResult?.result?.data || []
 
     const {
@@ -58,10 +66,21 @@ function DashboardPage() {
                 }
             )
             return response.json()
+        },
+        retry: (failureCount, error: any) => {
+            // Don't retry on 404 or client errors (4xx)
+            if (error?.status >= 400 && error?.status < 500) {
+                return false
+            }
+            return failureCount < 3
         }
     })
 
-    const streaks = streaksResult?.result ?? null
+    // Fallback to default streak data if error or no data
+    const streaks = streaksResult?.result ?? {
+        current_streak: 0,
+        longest_streak: 0
+    }
 
     const today = new Date().toISOString().split("T")[0]
 
@@ -82,15 +101,19 @@ function DashboardPage() {
             .toUpperCase()
     }
 
-
     const handleSurahClick = (surah: any) => {
-        navigate({ 
-            to: "/record", 
-            search: { surahId: surah.id, surahName: surah.name_simple } 
+        navigate({
+            to: '/record',
+            search: { surahId: surah.id, surahName: surah.name_simple }
         })
     }
+    const handleLogout = () => {
+        logout()
+        navigate({ to: '/login' })
+    }
 
-    if (isRecordingsLoading || isStreaksLoading) {
+    // Only show loading when both are still loading initially
+    if (isRecordingsLoading && isStreaksLoading) {
         return <Loading />
     }
 
@@ -118,9 +141,9 @@ function DashboardPage() {
                                     <AvatarImage src={user?.avatar || "/placeholder.svg"} />
                                     <AvatarFallback>{user?.name ? getInitials(user.name) : <User className="h-4 w-4" />}</AvatarFallback>
                                 </Avatar>
-                                {/* <Button variant="ghost" size="sm" onClick={handleLogout}>
-                                <LogOut className="h-4 w-4" />
-                            </Button> */}
+                                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                                    <LogOut className="h-4 w-4" />
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -145,7 +168,9 @@ function DashboardPage() {
                                             <p className="text-sm text-muted-foreground">You've already recorded today. Come back tomorrow!</p>
                                         </div>
                                     ) : (
-                                        <Link to="/record">
+                                        <Link
+                                            to="/record"
+                                        >
                                             <Button size="lg" className="w-full flex items-center gap-2">
                                                 <Mic className="h-5 w-5" />
                                                 Start Recording
@@ -156,22 +181,12 @@ function DashboardPage() {
                             </CardContent>
                         </Card>
 
-                        {isStreaksError ? (
-                            <Card className="md:col-span-2 lg:col-span-1 flex items-center justify-center min-h-[120px]">
-                                <CardContent>Error loading streak</CardContent>
-                            </Card>
-                        ) : streaks ? (
-                            <StreakCounter
-                                currentStreak={streaks.current_streak}
-                                longestStreak={streaks.longest_streak}
-                                todayCompleted={todayCompleted}
-                                className="md:col-span-2 lg:col-span-1"
-                            />
-                        ) : (
-                            <Card className="md:col-span-2 lg:col-span-1 flex items-center justify-center min-h-[120px]">
-                                <CardContent>No streak data</CardContent>
-                            </Card>
-                        )}
+                        <StreakCounter
+                            currentStreak={streaks.current_streak}
+                            longestStreak={streaks.longest_streak}
+                            todayCompleted={todayCompleted}
+                            className="md:col-span-2 lg:col-span-1"
+                        />
 
                         <ProgressCalendar completedDates={completedDates} className="md:col-span-1 lg:col-span-1" />
 

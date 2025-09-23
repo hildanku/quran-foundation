@@ -7,9 +7,9 @@ type FindByUser = {
     user: number // <- user id
 }
 
-type FindByUsername = {
-    username: string
-}
+// type FindByUsername = {
+//     username: string
+// }
 
 export interface AuthEntity extends Authentication { }
 
