@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
     restart: unless-stopped
-    environment: 
+    environment:
       POSTGRES_USER: quran_foundation
       POSTGRES_DB: quran_foundation
       POSTGRES_PASSWORD: ${DB_PASSWORD:-quran_foundation}
@@ -32,7 +30,7 @@ services:
       - DATABASE_URL=postgresql://quran_foundation:${DB_PASSWORD:-quran_foundation}@db:5432/quran_foundation
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_STORAGE_BUCKET=${SUPABASE_STORAGE_BUCKET}
       - QF_OAUTH_BASE_URL=${QF_OAUTH_BASE_URL}
       - QF_API_BASE_URL=${QF_API_BASE_URL}
       - QF_CLIENT_ID=${QF_CLIENT_ID}
@@ -59,6 +57,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_BACKEND_URL: ""
     restart: unless-stopped
     ports:
       - "80:80"

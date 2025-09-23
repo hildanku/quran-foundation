@@ -1,19 +1,41 @@
-FROM node:18-alpine as builder
+# Multi-stage build for frontend
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
-COPY web/package*.json ./
-COPY web/bun.lock ./
+# Copy root package.json for backend dependencies (hono, etc.)
+COPY package.json ./
+COPY bun.lock ./
+
+COPY web/package*.json ./web/
+COPY web/bun.lock ./web/
+
 RUN npm install
 
-COPY web/ .
+WORKDIR /app/web
+RUN npm install
+
+# Copy source code backend (diperlukan untuk type imports)
+WORKDIR /app
+COPY src/ ./src/
+COPY tsconfig.json ./
+
+COPY web/ ./web/
+
+# Build frontend with environment variable
+WORKDIR /app/web
+ARG VITE_BACKEND_URL=http://localhost:3000
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 RUN npm run build
 
+# Final stage
 FROM nginx:alpine
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built files from builder stage
+COPY --from=builder /app/web/dist /usr/share/nginx/html
 
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy nginx config
+COPY web/nginx.conf /etc/nginx/nginx.conf
 
 # Expose port
 EXPOSE 80
