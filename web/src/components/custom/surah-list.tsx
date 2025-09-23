@@ -61,6 +61,42 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
         gcTime: 1000 * 60 * 60 * 24, // 24h
     })
 
+    // Filter and search logic - moved before conditional returns to follow Rules of Hooks
+    const filteredAndSortedSurahs = useMemo(() => {
+        const surahs = data?.result?.chapters || []
+        
+        let filtered = surahs.filter((surah: any) => {
+            
+            const matchesSearch = searchQuery === "" ||
+                surah.name_simple.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                surah.translated_name.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                surah.name_arabic.includes(searchQuery) ||
+                surah.id.toString().includes(searchQuery)
+
+            const matchesRevelation = revelationFilter === "all" ||
+                surah.revelation_place.toLowerCase() === revelationFilter
+
+            return matchesSearch && matchesRevelation
+        })
+
+        // Sort logic
+        return filtered.sort((a: any, b: any) => {
+            switch (sortBy) {
+                case "name":
+                    return a.name_simple.localeCompare(b.name_simple)
+                case "verses":
+                    return b.verses_count - a.verses_count
+                case "number":
+                default:
+                    return a.id - b.id
+            }
+        })
+    }, [data, searchQuery, revelationFilter, sortBy])
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery, revelationFilter, sortBy, itemsPerPage])
+
     console.log(data)
 
     if (isLoading) {
@@ -117,49 +153,11 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
         )
     }
 
-    const surahs = data?.result.chapters || []
-
-    // Filter and search logic
-    const filteredAndSortedSurahs = useMemo(() => {
-        let filtered = surahs.filter((surah: any) => {
-            // Search filter
-            const matchesSearch = searchQuery === "" ||
-                surah.name_simple.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                surah.translated_name.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                surah.name_arabic.includes(searchQuery) ||
-                surah.id.toString().includes(searchQuery)
-
-            // Revelation place filter
-            const matchesRevelation = revelationFilter === "all" ||
-                surah.revelation_place.toLowerCase() === revelationFilter
-
-            return matchesSearch && matchesRevelation
-        })
-
-        // Sort logic
-        return filtered.sort((a: any, b: any) => {
-            switch (sortBy) {
-                case "name":
-                    return a.name_simple.localeCompare(b.name_simple)
-                case "verses":
-                    return b.verses_count - a.verses_count
-                case "number":
-                default:
-                    return a.id - b.id
-            }
-        })
-    }, [surahs, searchQuery, revelationFilter, sortBy])
-
     // Pagination logic
     const totalPages = Math.ceil(filteredAndSortedSurahs.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
     const currentPageSurahs = filteredAndSortedSurahs.slice(startIndex, endIndex)
-
-    // Reset to first page when filters change
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [searchQuery, revelationFilter, sortBy, itemsPerPage])
 
     // Generate page numbers for pagination
     const getPageNumbers = () => {
@@ -310,7 +308,7 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
 
                     {/* Results Count */}
                     <div className="flex items-center text-sm text-muted-foreground ml-auto">
-                        {filteredAndSortedSurahs.length} of {surahs.length} surahs
+                        {filteredAndSortedSurahs.length} of {data?.result?.chapters?.length || 0} surahs
                         {totalPages > 1 && (
                             <span className="ml-2 text-xs">
                                 (Page {currentPage} of {totalPages})
