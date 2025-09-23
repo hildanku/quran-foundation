@@ -1,6 +1,6 @@
 
 import { db } from '../../config/db/index.js'
-import { recordingTable, streakTable, type Recording } from '../../config/db/schema/postgres.js'
+import { recordingTable, type Recording } from '../../config/db/schema/postgres.js'
 import { JWTService } from '../../lib/middleware/jwt.js'
 import type { BaseRepository } from '../../lib/repository.js'
 import { eq, count, desc } from 'drizzle-orm'

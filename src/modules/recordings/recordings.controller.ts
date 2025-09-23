@@ -157,7 +157,7 @@ export const recordingsController = new Hono()
             const note = formData.get('note') as string | null
             const chapterIdRaw = formData.get('chapter_id') as string | null
             const chapterId = chapterIdRaw ? parseInt(chapterIdRaw) : null
-            
+
             // Validate chapter_id if provided (1-114 for Quran chapters)
             if (chapterId !== null && (isNaN(chapterId) || chapterId < 1 || chapterId > 114)) {
                 return appResponse(c, 400, 'Invalid chapter_id. Must be between 1 and 114.', null)
