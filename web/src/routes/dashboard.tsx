@@ -3,15 +3,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/lib/stores/auth'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { BookOpen, Mic, Settings, User, LogOut } from 'lucide-react'
 import { client } from '@/lib/rpc'
 import { appFetch } from '@/lib/app-fetch'
 import { StreakCounter } from '@/components/custom/streak-counter'
-import Loading from '@/components/ui/loading'
 import { RecordingHistory } from '@/components/custom/recording-history'
 import { ProgressCalendar } from '@/components/custom/progress-calendar'
 import { SurahList } from '@/components/custom/surah-list'
+import Loading from '@/components/ui/loading'
 
 export const Route = createFileRoute('/dashboard')({
     component: RouteComponent,
@@ -28,7 +28,7 @@ function DashboardPage() {
     const {
         data: recordingsResult,
         isLoading: isRecordingsLoading,
-        isError: isRecordingsError,
+        isError: _isRecordingsError,
     } = useQuery({
         queryKey: ['recordings'],
         queryFn: async () => {
@@ -55,7 +55,7 @@ function DashboardPage() {
     const {
         data: streaksResult,
         isLoading: isStreaksLoading,
-        isError: isStreaksError,
+        isError: _isStreaksError,
     } = useQuery({
         queryKey: ['streaks'],
         queryFn: async () => {
@@ -168,14 +168,13 @@ function DashboardPage() {
                                             <p className="text-sm text-muted-foreground">You've already recorded today. Come back tomorrow!</p>
                                         </div>
                                     ) : (
-                                        <Link
-                                            to="/record"
-                                        >
-                                            <Button size="lg" className="w-full flex items-center gap-2">
-                                                <Mic className="h-5 w-5" />
-                                                Start Recording
-                                            </Button>
-                                        </Link>
+                                        <div className="text-center py-4">
+                                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <Mic className="h-8 w-8 text-blue-600" />
+                                            </div>
+                                            <p className="text-lg font-semibold mb-2">Ready to Record?</p>
+                                            <p className="text-sm text-muted-foreground">Scroll down to choose a Surah and start your daily recording</p>
+                                        </div>
                                     )}
                                 </div>
                             </CardContent>
