@@ -9,6 +9,7 @@ import { RecordingControls } from '@/components/custom/recording-controls'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { appFetch } from '@/lib/app-fetch'
 import Loading from '@/components/ui/loading'
+import { BASE_URL } from '@/lib/constant'
 
 
 export const Route = createFileRoute('/record')({
@@ -48,7 +49,7 @@ function RecordPage() {
             })
 
             const response = await appFetch(
-                `http://localhost:5555/api/v1/surahs/${surahId}/verses?${queryParams.toString()}`
+                `${BASE_URL}/api/v1/surahs/${surahId}/verses?${queryParams.toString()}`
             )
             return response.json()
         },
@@ -71,7 +72,7 @@ function RecordPage() {
             // Use direct fetch instead of RPC client for file uploads
             // because my rpc client not handle formData properly
             // my rpc send request as application/json and content length: 0
-            const response = await appFetch('http://localhost:5555/api/v1/recordings/upload', {
+            const response = await appFetch(`${BASE_URL}/api/v1/recordings/upload`, {
                 method: 'POST',
                 body: formData,
             })
