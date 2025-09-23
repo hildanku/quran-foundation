@@ -12,8 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecordRouteImport } from './routes/record'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as BlogRouteImport } from './routes/blog'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as BackofficeRouteImport } from './routes/_backoffice'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -35,16 +33,6 @@ const RecordRoute = RecordRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BackofficeRoute = BackofficeRouteImport.update({
@@ -85,8 +73,6 @@ const BackofficeManagementUsersIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/blog': typeof BlogRoute
   '/dashboard': typeof DashboardRoute
   '/record': typeof RecordRoute
   '/settings': typeof SettingsRoute
@@ -97,8 +83,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/blog': typeof BlogRoute
   '/dashboard': typeof DashboardRoute
   '/record': typeof RecordRoute
   '/settings': typeof SettingsRoute
@@ -112,8 +96,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_backoffice': typeof BackofficeRouteWithChildren
-  '/about': typeof AboutRoute
-  '/blog': typeof BlogRoute
   '/dashboard': typeof DashboardRoute
   '/record': typeof RecordRoute
   '/settings': typeof SettingsRoute
@@ -126,8 +108,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
-    | '/blog'
     | '/dashboard'
     | '/record'
     | '/settings'
@@ -138,8 +118,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
-    | '/blog'
     | '/dashboard'
     | '/record'
     | '/settings'
@@ -152,8 +130,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/_backoffice'
-    | '/about'
-    | '/blog'
     | '/dashboard'
     | '/record'
     | '/settings'
@@ -167,8 +143,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   BackofficeRoute: typeof BackofficeRouteWithChildren
-  AboutRoute: typeof AboutRoute
-  BlogRoute: typeof BlogRoute
   DashboardRoute: typeof DashboardRoute
   RecordRoute: typeof RecordRoute
   SettingsRoute: typeof SettingsRoute
@@ -195,20 +169,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_backoffice': {
@@ -293,8 +253,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   BackofficeRoute: BackofficeRouteWithChildren,
-  AboutRoute: AboutRoute,
-  BlogRoute: BlogRoute,
   DashboardRoute: DashboardRoute,
   RecordRoute: RecordRoute,
   SettingsRoute: SettingsRoute,
