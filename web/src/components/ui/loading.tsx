@@ -1,14 +1,10 @@
-/**
- * v0 by Vercel.
- * @see https://v0.app/t/aI2e6AOiaze
- * Documentation: https://v0.app/docs#integrating-generated-code-into-your-nextjs-app
- */
 export default function Loading() {
-    return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm dark:bg-gray-950 dark:bg-opacity-50">
-            <div className="animate-pulse">
-                <div className="h-12 w-12 rounded-full border-4 border-gray-300 border-t-transparent dark:border-gray-600" />
-            </div>
-        </div>
-    )
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 bg-opacity-80">
+      <div className="flex flex-col items-center space-y-3">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin"></div>
+        <p className="text-xs text-gray-500">Loading</p>
+      </div>
+    </div>
+  )
 }

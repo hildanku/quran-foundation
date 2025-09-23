@@ -26,10 +26,10 @@ export function RecordingHistory({ recordings, className }: RecordingHistoryProp
     const [isLoading, setIsLoading] = useState<number | null>(null)
     const audioRef = useRef<HTMLAudioElement | null>(null)
 
-    const formatDuration = (url: string) => {
-        // WIP: actual duration from audio metadata
-        return "2:34"
-    }
+    // const formatDuration = () => {
+    //     // WIP: actual duration from audio metadata
+    //     return "2:34"
+    // }
 
     const handlePlay = async (recording: Recording) => {
         try {
@@ -110,7 +110,7 @@ export function RecordingHistory({ recordings, className }: RecordingHistoryProp
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Clock className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm font-medium">{formatDuration(recording.file_url)}</span>
+                                        <span className="text-sm font-medium">1.01</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
                                         {formatDistanceToNow(new Date(recording.created_at * 1000), { addSuffix: true })}
