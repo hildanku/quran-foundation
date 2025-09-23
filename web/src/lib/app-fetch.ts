@@ -12,10 +12,16 @@ export const appFetch: (
         headers.set('Authorization', `${token}`)
     }
 
-    if (!headers.has('Content-Type') && !(init.body instanceof FormData)) {
+    // Only set Content-Type for non-FormData requests
+    // Let the browser set Content-Type automatically for FormData (multipart/form-data)
+    if (init.body instanceof FormData) {
+        // Remove any Content-Type header that might have been set
+        // The browser will set it automatically with the correct boundary
+        headers.delete('Content-Type')
+    } else if (!headers.has('Content-Type')) {
+        // Only set JSON content type if no Content-Type is already set and it's not FormData
         headers.set('Content-Type', 'application/json')
     }
-
     const res = await fetch(input, {
         ...init,
         headers,

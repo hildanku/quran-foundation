@@ -12,6 +12,7 @@ import { RecordingHistory } from '@/components/custom/recording-history'
 import { ProgressCalendar } from '@/components/custom/progress-calendar'
 import { SurahList } from '@/components/custom/surah-list'
 import Loading from '@/components/ui/loading'
+import { getInitials } from '@/lib/utils'
 
 export const Route = createFileRoute('/dashboard')({
     component: RouteComponent,
@@ -89,17 +90,9 @@ function DashboardPage() {
         return date === today
     })
 
-
     const completedDates = recordings.map((recording) =>
         new Date(recording.created_at * 1000).toISOString().split("T")[0],
     )
-    const getInitials = (name: string) => {
-        return name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-    }
 
     const handleSurahClick = (surah: any) => {
         navigate({
