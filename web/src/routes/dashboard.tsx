@@ -34,7 +34,12 @@ function DashboardPage() {
         queryKey: ['recordings'],
         queryFn: async () => {
             const response = await client.api.v1.recordings.user.$get(
-                {},
+                {
+                    query: {
+                        limit: '10',
+                        page: '1'
+                    }
+                },
                 {
                     fetch: appFetch,
                 }
@@ -85,12 +90,12 @@ function DashboardPage() {
 
     const today = new Date().toISOString().split("T")[0]
 
-    const todayCompleted = recordings.some((recording) => {
+    const todayCompleted = recordings.some((recording: { created_at: number }) => {
         const date = new Date(recording.created_at * 1000).toISOString().split("T")[0]
         return date === today
     })
 
-    const completedDates = recordings.map((recording) =>
+    const completedDates = recordings.map((recording: { created_at: number }) =>
         new Date(recording.created_at * 1000).toISOString().split("T")[0],
     )
 
