@@ -13,8 +13,12 @@ import { ProgressCalendar } from '@/components/custom/progress-calendar'
 import { SurahList } from '@/components/custom/surah-list'
 import Loading from '@/components/ui/loading'
 import { getInitials } from '@/lib/utils'
+import { requireAuth } from '@/lib/auth-guard'
 
 export const Route = createFileRoute('/dashboard')({
+    beforeLoad: async () => {
+        await requireAuth()
+    },
     component: RouteComponent,
 })
 
