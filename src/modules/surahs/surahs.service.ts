@@ -1,3 +1,12 @@
+import {
+    QURAN_FOUNDATION_OAUTH_BASE_URL,
+    QURAN_FOUNDATION_API_BASE_URL,
+    OAUTH_TOKEN_ENDPOINT,
+    CHAPTERS_ENDPOINT,
+    VERSES_BY_CHAPTER_ENDPOINT,
+    UTHMANI_VERSES_ENDPOINT
+} from '../../lib/constant.js'
+
 interface TokenResponse {
     access_token: string
     token_type: string
@@ -28,7 +37,7 @@ export async function getAccessToken(): Promise<string> {
     try {
         const credentials = btoa(`${clientId}:${clientSecret}`)
 
-        const response = await fetch('https://prelive-oauth2.quran.foundation/oauth2/token', {
+        const response = await fetch(`${QURAN_FOUNDATION_OAUTH_BASE_URL}${OAUTH_TOKEN_ENDPOINT}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -68,7 +77,7 @@ export async function fetchChapters(): Promise<any> {
         throw new Error('QF_CLIENT_ID environment variable is required')
     }
 
-    const response = await fetch('https://apis-prelive.quran.foundation/content/api/v4/chapters', {
+    const response = await fetch(`${QURAN_FOUNDATION_API_BASE_URL}${CHAPTERS_ENDPOINT}`, {
         method: 'GET',
         headers: {
             'x-auth-token': accessToken,
@@ -113,7 +122,7 @@ export async function fetchVersesByChapter(chapterNumber: number, options?: {
     if (options?.page) queryParams.append('page', options.page.toString())
     if (options?.per_page) queryParams.append('per_page', options.per_page.toString())
 
-    const url = `https://apis-prelive.quran.foundation/content/api/v4/verses/by_chapter/${chapterNumber}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+    const url = `${QURAN_FOUNDATION_API_BASE_URL}${VERSES_BY_CHAPTER_ENDPOINT}/${chapterNumber}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
 
     const response = await fetch(url, {
         method: 'GET',
@@ -150,7 +159,7 @@ export async function fetchUthmanVersesByChapter(chapterNumber: number): Promise
     const queryParams = new URLSearchParams()
     queryParams.append('chapter_number', chapterNumber.toString())
 
-    const url = `https://apis-prelive.quran.foundation/content/api/v4/quran/verses/uthmani?${queryParams.toString()}`
+    const url = `${QURAN_FOUNDATION_API_BASE_URL}${UTHMANI_VERSES_ENDPOINT}?${queryParams.toString()}`
 
     const response = await fetch(url, {
         method: 'GET',
