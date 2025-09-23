@@ -121,27 +121,27 @@ function DashboardPage() {
         <>
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
                 <header className="bg-white/80 backdrop-blur-sm border-b">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex items-center justify-between h-16">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary rounded-lg">
-                                    <BookOpen className="h-6 w-6 text-primary-foreground" />
+                    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-14 sm:h-16">
+                            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                <div className="p-1.5 sm:p-2 bg-primary rounded-lg flex-shrink-0">
+                                    <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
                                 </div>
-                                <div>
-                                    <h1 className="text-xl font-bold">DailyQuran</h1>
-                                    <p className="text-sm text-muted-foreground">Welcome back, {user?.name}</p>
+                                <div className="min-w-0 flex-1">
+                                    <h1 className="text-lg sm:text-xl font-bold truncate">DailyQuran</h1>
+                                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Welcome back, {user?.name}</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/settings" })}>
+                            <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+                                <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/settings" })} className="p-2">
                                     <Settings className="h-4 w-4" />
                                 </Button>
-                                <Avatar>
+                                <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                                     <AvatarImage src={user?.avatar || "/placeholder.svg"} />
-                                    <AvatarFallback>{user?.name ? getInitials(user.name) : <User className="h-4 w-4" />}</AvatarFallback>
+                                    <AvatarFallback className="text-xs sm:text-sm">{user?.name ? getInitials(user.name) : <User className="h-3 w-3 sm:h-4 sm:w-4" />}</AvatarFallback>
                                 </Avatar>
-                                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                                <Button variant="ghost" size="sm" onClick={handleLogout} className="p-2">
                                     <LogOut className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -149,31 +149,31 @@ function DashboardPage() {
                     </div>
                 </header>
 
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        <Card className="md:col-span-2 lg:col-span-1">
-                            <CardHeader>
-                                <CardTitle>Today's Reading</CardTitle>
-                                <CardDescription>
+                <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+                    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                        <Card className="sm:col-span-2 lg:col-span-1">
+                            <CardHeader className="pb-3 sm:pb-6">
+                                <CardTitle className="text-lg sm:text-xl">Today's Reading</CardTitle>
+                                <CardDescription className="text-sm">
                                     {todayCompleted ? "Great job! You've completed today's reading." : "Ready to continue your streak?"}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
+                            <CardContent className="pt-0">
+                                <div className="space-y-3 sm:space-y-4">
                                     {todayCompleted ? (
-                                        <div className="text-center py-4">
-                                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                <BookOpen className="h-8 w-8 text-green-600" />
+                                        <div className="text-center py-3 sm:py-4">
+                                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                                                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                                             </div>
-                                            <p className="text-sm text-muted-foreground">You've already recorded today. Come back tomorrow!</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground px-2">You've already recorded today. Come back tomorrow!</p>
                                         </div>
                                     ) : (
-                                        <div className="text-center py-4">
-                                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                <Mic className="h-8 w-8 text-blue-600" />
+                                        <div className="text-center py-3 sm:py-4">
+                                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                                                <Mic className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                                             </div>
-                                            <p className="text-lg font-semibold mb-2">Ready to Record?</p>
-                                            <p className="text-sm text-muted-foreground">Scroll down to choose a Surah and start your daily recording</p>
+                                            <p className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Ready to Record?</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground px-2">Scroll down to choose a Surah and start your daily recording</p>
                                         </div>
                                     )}
                                 </div>
@@ -184,48 +184,48 @@ function DashboardPage() {
                             currentStreak={streaks.current_streak}
                             longestStreak={streaks.longest_streak}
                             todayCompleted={todayCompleted}
-                            className="md:col-span-2 lg:col-span-1"
+                            className="sm:col-span-1 lg:col-span-1"
                         />
 
-                        <ProgressCalendar completedDates={completedDates} className="md:col-span-1 lg:col-span-1" />
+                        <ProgressCalendar completedDates={completedDates} className="sm:col-span-1 lg:col-span-1" />
 
-                        <Card className="md:col-span-2 lg:col-span-3">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <BookOpen className="h-5 w-5" />
+                        <Card className="sm:col-span-2 lg:col-span-3">
+                            <CardHeader className="pb-3 sm:pb-6">
+                                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Choose a Surah
                                 </CardTitle>
-                                <CardDescription>Select a chapter from the Quran to read and record</CardDescription>
+                                <CardDescription className="text-sm">Select a chapter from the Quran to read and record</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-0">
                                 <SurahList onSurahClick={handleSurahClick} />
                             </CardContent>
                         </Card>
 
-                        <RecordingHistory recordings={recordings} className="md:col-span-2 lg:col-span-2" />
+                        <RecordingHistory recordings={recordings} className="sm:col-span-2 lg:col-span-2" />
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Settings className="h-5 w-5" />
+                        <Card className="sm:col-span-2 lg:col-span-1">
+                            <CardHeader className="pb-3 sm:pb-6">
+                                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                                    <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Quick Stats
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-muted-foreground">Total Recordings</span>
-                                        <span className="font-medium">{recordings?.length ?? 0}</span>
+                            <CardContent className="pt-0">
+                                <div className="space-y-3 sm:space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Total Recordings</span>
+                                        <span className="font-medium text-sm sm:text-base">{recordings?.length ?? 0}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-muted-foreground">This Month</span>
-                                        <span className="font-medium">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">This Month</span>
+                                        <span className="font-medium text-sm sm:text-base">
                                             {recordings?.filter((r) => new Date(r.created_at * 1000).getMonth() === new Date().getMonth()).length ?? 0}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-muted-foreground">Success Rate</span>
-                                        <span className="font-medium">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Success Rate</span>
+                                        <span className="font-medium text-sm sm:text-base">
                                             {(recordings?.length ?? 0) > 0 ? Math.round((completedDates.length / new Date().getDate()) * 100) : 0}%
                                         </span>
                                     </div>

@@ -14,7 +14,7 @@ type FindByUser = {
 export interface AuthEntity extends Authentication { }
 
 export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity | null>, 'list' | 'findByUser'> {
-    private auth: AuthEntity[] = []
+    // private auth: AuthEntity[] = []
 
     async create(data: Partial<AuthEntity | null>): Promise<AuthEntity | null> {
         const now = Math.floor(Date.now() / 1000)
@@ -44,7 +44,7 @@ export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity 
             .where(eq(authenticationTable.id, id))
             .limit(1)
 
-        this.auth = auth
+        // this.auth = auth
         return auth.length > 0 ? auth[0] : null
     }
 
@@ -64,14 +64,14 @@ export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity 
             .where(eq(authenticationTable.id, id))
             .returning()
 
-        this.auth = updated
+        // this.auth = updated
         return updated.length > 0 ? updated[0] : null
     }
 
     async delete(id: number): Promise<boolean> {
         try {
             await db.delete(authenticationTable).where(eq(authenticationTable.id, id))
-            this.auth = []
+            // this.auth = []
             return true
         } catch (error) {
             console.error(error)
@@ -86,7 +86,7 @@ export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity 
             .where(eq(authenticationTable.user, data.user))
             .limit(1)
 
-        this.auth = auth
+        // this.auth = auth
         return auth
     }
 }

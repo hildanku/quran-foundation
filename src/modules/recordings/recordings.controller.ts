@@ -8,7 +8,6 @@ import { FOUND, NOT_FOUND, SOMETHING_WHEN_WRONG } from '../../lib/constant.js'
 import { roleMiddleware } from '../../lib/middleware/middleware.js'
 import { logger } from '../../config/logging.js'
 import { recordingValidator, generateUploadUrlValidator } from './recordings.validator.js'
-import { type UploadedFile } from '../../lib/middleware/file-upload.js'
 import { StreaksRepository } from '../streaks/streaks.repository.js'
 import { paginationQueryValidator } from '../../lib/zod.js'
 
@@ -171,7 +170,7 @@ export const recordingsController = new Hono()
             }
             console.log('sampe131 ga?')
             const buffer = Buffer.from(await audioFile.arrayBuffer())
-            const uploadedFile: UploadedFile = {
+            const uploadedFile = {
                 buffer,
                 originalname: audioFile.name,
                 mimetype: audioFile.type,
