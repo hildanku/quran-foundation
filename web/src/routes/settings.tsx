@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, User, Shield, Info } from "lucide-react"
 import { useAuth } from "@/lib/stores/auth"
+import { requireAuth } from "@/lib/auth-guard"
 
 export const Route = createFileRoute("/settings")({
+    beforeLoad: async () => {
+        await requireAuth()
+    },
     component: SettingsPage,
 })
 

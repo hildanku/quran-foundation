@@ -10,9 +10,13 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { appFetch } from '@/lib/app-fetch'
 import Loading from '@/components/ui/loading'
 import { BASE_URL } from '@/lib/constant'
+import { requireAuth } from '@/lib/auth-guard'
 
 
 export const Route = createFileRoute('/record')({
+    beforeLoad: async () => {
+        await requireAuth()
+    },
     component: RouteComponent,
     validateSearch: (search: Record<string, unknown>) => ({
         surahId: search.surahId as number | undefined,
