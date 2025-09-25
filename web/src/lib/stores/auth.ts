@@ -26,7 +26,6 @@ export const useAuth = create<AuthState>((set, get) => ({
             })
 
             const data = await res.json()
-            console.log(data)
 
             if (!res.ok) {
                 throw new Error(data.message || 'Error')
@@ -43,7 +42,6 @@ export const useAuth = create<AuthState>((set, get) => ({
             await get().fetchCurrentUser()
             return get().user
         } catch (err) {
-            console.error(err)
             return null
         }
     },

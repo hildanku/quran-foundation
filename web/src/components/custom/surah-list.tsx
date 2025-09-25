@@ -64,9 +64,9 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
     // Filter and search logic - moved before conditional returns to follow Rules of Hooks
     const filteredAndSortedSurahs = useMemo(() => {
         const surahs = data?.result?.chapters || []
-        
+
         let filtered = surahs.filter((surah: any) => {
-            
+
             const matchesSearch = searchQuery === "" ||
                 surah.name_simple.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 surah.translated_name.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,8 +96,6 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
     useEffect(() => {
         setCurrentPage(1)
     }, [searchQuery, revelationFilter, sortBy, itemsPerPage])
-
-    console.log(data)
 
     if (isLoading) {
         return (
