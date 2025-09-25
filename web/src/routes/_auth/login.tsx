@@ -81,7 +81,7 @@ function LoginPage() {
                                         <FormItem>
                                             <FormLabel>Username</FormLabel>
                                             <FormControl>
-                                                <Input type='text' placeholder='Masukkan username' {...field} />
+                                                <Input type='text' placeholder='Enter your username' {...field} />
                                             </FormControl>
                                             <FormMessage className='font-normal' />
                                         </FormItem>
@@ -96,7 +96,7 @@ function LoginPage() {
                                         <FormItem>
                                             <FormLabel>Password</FormLabel>
                                             <FormControl>
-                                                <Input type='password' placeholder='Masukkan password' {...field} />
+                                                <Input type='password' placeholder='Enter your password' {...field} />
                                             </FormControl>
                                             <FormMessage className='font-normal' />
                                         </FormItem>
