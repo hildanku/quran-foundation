@@ -48,7 +48,7 @@ export function RecordingHistory({ recordings, className }: RecordingHistoryProp
             }
 
             setIsLoading(recording.id)
-            
+
             // Create new audio element
             const audio = new Audio(recording.file_url)
             audioRef.current = audio
@@ -66,14 +66,13 @@ export function RecordingHistory({ recordings, className }: RecordingHistoryProp
             audio.addEventListener('error', () => {
                 setIsLoading(null)
                 setCurrentlyPlaying(null)
-                console.error('Error playing audio:', recording.file_url)
             })
 
             await audio.play()
         } catch (error) {
             setIsLoading(null)
             setCurrentlyPlaying(null)
-            console.error('Error playing recording:', error)
+
         }
     }
 
@@ -117,9 +116,9 @@ export function RecordingHistory({ recordings, className }: RecordingHistoryProp
                                     </p>
                                     {recording.note && <p className="text-xs text-muted-foreground mt-1">{recording.note}</p>}
                                 </div>
-                                <Button 
-                                    size="sm" 
-                                    variant="outline" 
+                                <Button
+                                    size="sm"
+                                    variant="outline"
                                     className="flex items-center gap-1 bg-transparent"
                                     onClick={() => handlePlay(recording)}
                                     disabled={isLoading === recording.id}

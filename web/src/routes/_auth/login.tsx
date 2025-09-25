@@ -35,10 +35,7 @@ function LoginPage() {
     const loginMutation = useMutation({
         mutationFn: async (data: z.infer<typeof loginSchema>) => {
             const user = await auth.login(data.username, data.password)
-            if (!user) {
-                throw new Error('Error')
-            }
-            return user
+            if (!user) throw new Error('Error')
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['user'] })
