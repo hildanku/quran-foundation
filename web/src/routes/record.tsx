@@ -6,7 +6,7 @@ import { BookOpen, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RecordingControls } from '@/components/custom/recording-controls'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { appFetch } from '@/lib/app-fetch'
 import Loading from '@/components/ui/loading'
 import { BASE_URL } from '@/lib/constant'
@@ -28,6 +28,23 @@ function RouteComponent() {
     return <RecordPage />
 }
 
+async function fetchVersesPage({
+    surahId,
+    pageParam = 1,
+}: { surahId: number; pageParam?: number }) {
+    const queryParam = new URLSearchParams({
+        page: String(pageParam),
+        per_page: '20',
+        words: "true",
+        language: 'en',
+        translations: '131',
+    })
+
+    const res = await appFetch(`${BASE_URL}/api/v1/surahs/${surahId}/verses?${queryParam}`)
+    if (!res) throw new Error('Error')
+    return res.json()
+}
+
 function RecordPage() {
     const recorder = useMediaRecorder()
     const { toast } = useToast()
@@ -36,31 +53,20 @@ function RecordPage() {
     const { surahId, surahName } = Route.useSearch()
 
     const {
-        data: versesResult,
-        isLoading: isVersesLoading,
-        isError: isVersesError,
-    } = useQuery({
+        data,
+        status,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useInfiniteQuery({
         queryKey: ['verses', surahId],
-        queryFn: async () => {
-            if (!surahId) return null
-
-            // Use direct fetch to avoid TypeScript issues with dynamic RPC client keys
-            const queryParams = new URLSearchParams({
-                per_page: '50',
-                words: 'true',
-                language: 'en',
-                translations: '131'
-            })
-
-            const response = await appFetch(
-                `${BASE_URL}/api/v1/surahs/${surahId}/verses?${queryParams.toString()}`
-            )
-            return response.json()
-        },
-        enabled: !!surahId
+        queryFn: ({ pageParam }) => fetchVersesPage({ surahId: surahId!, pageParam }),
+        enabled: !!surahId,
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => lastPage.result?.pagination?.next_page ?? undefined,
     })
 
-    const verses = versesResult?.result?.verses || []
+    const verses = data?.pages.flatMap(p => p.result.verses ?? []) ?? []
 
     const uploadRecording = useMutation({
         mutationFn: async (audioBlob: Blob) => {
@@ -145,14 +151,22 @@ function RecordPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {isVersesLoading ? (
+                            {status === 'pending' ? (
                                 <Loading />
-                            ) : isVersesError ? (
+                            ) : status === 'error' ? (
                                 <div className="text-center text-red-500">
                                     <p>Failed to load verses. Please try again.</p>
                                 </div>
                             ) : verses.length > 0 ? (
-                                <div className="h-96 overflow-y-auto border rounded-md p-4">
+                                <div className="h-96 overflow-y-auto border rounded-md p-4"
+                                    onScroll={(e) => {
+                                        const el = e.currentTarget
+                                        const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10
+                                        if (nearBottom && hasNextPage && !isFetchingNextPage) {
+                                            fetchNextPage()
+                                        }
+                                    }}
+                                >
                                     <div className="space-y-4">
                                         {verses.map((verse: any) => {
                                             return (
@@ -178,6 +192,13 @@ function RecordPage() {
                                                 </div>
                                             )
                                         })}
+                                        {isFetchingNextPage && (
+                                            <p className="text-center text-sm text-muted-foreground mt-2">Loading more…</p>
+                                        )}
+
+                                        {!hasNextPage && verses.length > 0 && (
+                                            <p className="text-center text-xs text-muted-foreground mt-2">All verses loaded.</p>
+                                        )}
                                     </div>
                                 </div>
                             ) : (
