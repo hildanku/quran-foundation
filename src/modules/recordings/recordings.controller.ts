@@ -10,6 +10,7 @@ import { logger } from '../../config/logging.js'
 import { recordingValidator, generateUploadUrlValidator } from './recordings.validator.js'
 import { StreaksRepository } from '../streaks/streaks.repository.js'
 import { paginationQueryValidator } from '../../lib/zod.js'
+import { withHttpTrace, withDbTrace, withFileTrace, addEvent } from '../../lib/telemetry.js'
 
 export const recordingsController = new Hono()
     .use(
@@ -27,31 +28,49 @@ export const recordingsController = new Hono()
         return appResponse(c, 200, 'ok', null)
     })
     .get('/user', zValidator('query', paginationQueryValidator), async (c) => {
-        const repo = new RecordingsRepository()
-        const token = c.req.header('Authorization')!
-        const { page, limit } = c.req.valid('query')
+        return withHttpTrace('recordings.list_by_user', 'GET', '/recordings/user', async () => {
+            const repo = new RecordingsRepository()
+            const token = c.req.header('Authorization')!
+            const { page, limit } = c.req.valid('query')
 
-        try {
-            const result = await repo.listByToken(token, page, limit)
-            if (!result) {
-                return appResponse(c, 404, NOT_FOUND, null)
-            }
+            try {
+                addEvent('recording.list_by_user.start', { page, limit })
 
-            if (result.data.length === 0) {
-                return appResponse(c, 200, 'No recordings found', {
-                    data: [],
+                const result = await withDbTrace('list', 'recordings', async () =>
+                    repo.listByToken(token, page, limit)
+                )
+
+                if (!result) {
+                    addEvent('recording.list_by_user.not_found')
+                    return appResponse(c, 404, NOT_FOUND, null)
+                }
+
+                if (result.data.length === 0) {
+                    addEvent('recording.list_by_user.empty_result', { page, limit })
+                    return appResponse(c, 200, 'No recordings found', {
+                        data: [],
+                        metadata: result.metadata
+                    })
+                }
+
+                addEvent('recording.list_by_user.success', { 
+                    count: result.data.length,
+                    page,
+                    limit
+                })
+
+                return appResponse(c, 200, FOUND, {
+                    data: result.data,
                     metadata: result.metadata
                 })
+            } catch (error) {
+                addEvent('recording.list_by_user.error', { 
+                    error: error instanceof Error ? error.message : 'unknown' 
+                })
+                logger.error(error)
+                return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
             }
-
-            return appResponse(c, 200, FOUND, {
-                data: result.data,
-                metadata: result.metadata
-            })
-        } catch (error) {
-            logger.error(error)
-            return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
-        }
+        })
     })
     .get('/', async (c) => {
         const repo = new RecordingsRepository()
@@ -133,97 +152,141 @@ export const recordingsController = new Hono()
         }
     })
     .post('/upload', async (c) => {
-        const repo = new RecordingsRepository()
-        const userRepo = new UserRepository()
-        const streakRepo = new StreaksRepository()
+        return withHttpTrace('recordings.upload', 'POST', '/recordings/upload', async () => {
+            const repo = new RecordingsRepository()
+            const userRepo = new UserRepository()
+            const streakRepo = new StreaksRepository()
 
-        console.log('diatas try catch')
-        try {
-            const accessToken = c.req.header('Authorization') || ''
-            const user = await userRepo.findByToken({ token: accessToken })
-            console.log('accessToken', accessToken)
-            console.log('console', user?.name)
-            if (!user || !user.id) {
-                return appResponse(c, 401, 'User not authenticated', null)
-            }
+            try {
+                addEvent('recording.upload.start')
 
-            const userId = user.id
-            console.log(userId, 'userid')
+                const accessToken = c.req.header('Authorization') || ''
+                const user = await withDbTrace('read', 'users', async () =>
+                    userRepo.findByToken({ token: accessToken })
+                )
 
-            // parsing
-            const formData = await c.req.formData()
-            const audioFile = formData.get('audio') as File | null
-            const note = formData.get('note') as string | null
-            const chapterIdRaw = formData.get('chapter_id') as string | null
-            const chapterId = chapterIdRaw ? parseInt(chapterIdRaw) : null
+                if (!user || !user.id) {
+                    addEvent('recording.upload.failed', { reason: 'user_not_authenticated' })
+                    return appResponse(c, 401, 'User not authenticated', null)
+                }
 
-            // Validate chapter_id if provided (1-114 for Quran chapters)
-            if (chapterId !== null && (isNaN(chapterId) || chapterId < 1 || chapterId > 114)) {
-                return appResponse(c, 400, 'Invalid chapter_id. Must be between 1 and 114.', null)
-            }
+                const userId = user.id
+                addEvent('recording.upload.user_authenticated', { userId })
 
-            console.log('lewat sini ga')
-            console.log('audioFile:', audioFile)
+                // parsing form data
+                const formData = await c.req.formData()
+                const audioFile = formData.get('audio') as File | null
+                const note = formData.get('note') as string | null
+                const chapterIdRaw = formData.get('chapter_id') as string | null
+                const chapterId = chapterIdRaw ? parseInt(chapterIdRaw) : null
 
-            if (!audioFile) {
-                return appResponse(c, 400, 'No audio file provided', null)
-            }
-            console.log('sampe131 ga?')
-            const buffer = Buffer.from(await audioFile.arrayBuffer())
-            const uploadedFile = {
-                buffer,
-                originalname: audioFile.name,
-                mimetype: audioFile.type,
-                size: buffer.length,
-            }
+                // Validate chapter_id if provided (1-114 for Quran chapters)
+                if (chapterId !== null && (isNaN(chapterId) || chapterId < 1 || chapterId > 114)) {
+                    addEvent('recording.upload.failed', { reason: 'invalid_chapter_id', chapterId })
+                    return appResponse(c, 400, 'Invalid chapter_id. Must be between 1 and 114.', null)
+                }
 
-            if (!uploadedFile.mimetype.startsWith('audio/')) {
-                return appResponse(c, 400, 'Invalid file type. Only audio files are allowed', null)
-            }
+                if (!audioFile) {
+                    addEvent('recording.upload.failed', { reason: 'no_audio_file' })
+                    return appResponse(c, 400, 'No audio file provided', null)
+                }
 
-            const uploadResult = await RecordingsService.uploadRecordingFile(
-                uploadedFile.buffer,
-                uploadedFile.originalname,
-                userId,
-                uploadedFile.mimetype
-            )
+                const buffer = Buffer.from(await audioFile.arrayBuffer())
+                const uploadedFile = {
+                    buffer,
+                    originalname: audioFile.name,
+                    mimetype: audioFile.type,
+                    size: buffer.length,
+                }
 
-            const recordingData = {
-                user: userId,
-                file_url: uploadResult.fileUrl!,
-                note: note || null,
-                chapter_id: chapterId,
-            }
+                addEvent('recording.upload.file_parsed', { 
+                    filename: audioFile.name,
+                    size: buffer.length,
+                    mimetype: audioFile.type
+                })
 
-            const record = await repo.create(recordingData)
+                if (!uploadedFile.mimetype.startsWith('audio/')) {
+                    addEvent('recording.upload.failed', { reason: 'invalid_file_type', mimetype: uploadedFile.mimetype })
+                    return appResponse(c, 400, 'Invalid file type. Only audio files are allowed', null)
+                }
 
-            const getStreak = await streakRepo.findByUser(userId)
-            if (!getStreak) {
-                await streakRepo.create({
+                // Upload file with tracing
+                const uploadResult = await withFileTrace('upload', uploadedFile.originalname, async () =>
+                    RecordingsService.uploadRecordingFile(
+                        uploadedFile.buffer,
+                        uploadedFile.originalname,
+                        userId,
+                        uploadedFile.mimetype
+                    )
+                )
+
+                addEvent('recording.upload.file_uploaded', { fileUrl: uploadResult.fileUrl || 'unknown' })
+
+                const recordingData = {
                     user: userId,
-                    current_streak: 1,
-                    longest_streak: 1,
-                    last_recorded_at: Math.floor(Date.now() / 1000),
-                })
-            } else {
-                const newCurrentStreak = getStreak.current_streak + 1
-                const newLongestStreak = Math.max(newCurrentStreak, getStreak.longest_streak)
+                    file_url: uploadResult.fileUrl!,
+                    note: note || null,
+                    chapter_id: chapterId,
+                }
 
-                await streakRepo.update(getStreak.id, {
-                    current_streak: newCurrentStreak,
-                    longest_streak: newLongestStreak,
-                    last_recorded_at: Math.floor(Date.now() / 1000),
+                // Save recording with tracing
+                const record = await withDbTrace('create', 'recordings', async () =>
+                    repo.create(recordingData)
+                )
+
+                addEvent('recording.upload.record_created', { recordId: record.id })
+
+                // Update streaks with tracing
+                const getStreak = await withDbTrace('read', 'streaks', async () =>
+                    streakRepo.findByUser(userId)
+                )
+
+                if (!getStreak) {
+                    await withDbTrace('create', 'streaks', async () =>
+                        streakRepo.create({
+                            user: userId,
+                            current_streak: 1,
+                            longest_streak: 1,
+                            last_recorded_at: Math.floor(Date.now() / 1000),
+                        })
+                    )
+                    addEvent('recording.upload.streak_created', { userId, streak: 1 })
+                } else {
+                    const newCurrentStreak = getStreak.current_streak + 1
+                    const newLongestStreak = Math.max(newCurrentStreak, getStreak.longest_streak)
+
+                    await withDbTrace('update', 'streaks', async () =>
+                        streakRepo.update(getStreak.id, {
+                            current_streak: newCurrentStreak,
+                            longest_streak: newLongestStreak,
+                            last_recorded_at: Math.floor(Date.now() / 1000),
+                        })
+                    )
+                    addEvent('recording.upload.streak_updated', { 
+                        userId, 
+                        oldStreak: getStreak.current_streak, 
+                        newStreak: newCurrentStreak 
+                    })
+                }
+
+                addEvent('recording.upload.success', { 
+                    recordId: record.id, 
+                    userId,
+                    chapterId: chapterId || 0
                 })
+
+                return appResponse(c, 201, 'Recording uploaded and saved successfully', {
+                    recording: record,
+                    fileUrl: uploadResult.fileUrl,
+                })
+            } catch (error) {
+                addEvent('recording.upload.error', { 
+                    error: error instanceof Error ? error.message : 'unknown' 
+                })
+                logger.error('Upload error di controller164:', error)
+                return appResponse(c, 500, 'Failed to upload recording', null)
             }
-
-            return appResponse(c, 201, 'Recording uploaded and saved successfully', {
-                recording: record,
-                fileUrl: uploadResult.fileUrl,
-            })
-        } catch (error) {
-            logger.error('Upload error di controller164:', error)
-            return appResponse(c, 500, 'Failed to upload recording', null)
-        }
+        })
     })
     .post('/upload-url', zValidator('json', generateUploadUrlValidator), async (c) => {
         const userRepo = new UserRepository()
