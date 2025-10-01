@@ -1,21 +1,26 @@
-import { ConsoleMetricExporter, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 
-const jaegerExporter = new OTLPTraceExporter({
-    url: process.env.JAEGER_ENDPOINT || 'http://localhost:14268/api/traces'
-})
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
 
-const spanExporter = process.env.NODE_ENV === 'development' ?
-    jaegerExporter :
-    new ConsoleSpanExporter()
+import { resourceFromAttributes } from '@opentelemetry/resources'
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 
 export const sdk = new NodeSDK({
-    traceExporter: spanExporter,
+    resource: resourceFromAttributes({
+        [ATTR_SERVICE_NAME]: "quran-hono-api",
+        [ATTR_SERVICE_VERSION]: "1.0",
+    })
+    ,
+    traceExporter: new OTLPTraceExporter({
+        url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT || 'http://jaeger:4317'
+    }),
     metricReader: new PeriodicExportingMetricReader({
-        exporter: new ConsoleMetricExporter(),
+        exporter: new OTLPMetricExporter({
+            url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT || 'http://jaeger:4317',
+        }),
         exportIntervalMillis: 30000,
     }),
     instrumentations: [

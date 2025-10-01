@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC collector (WAJIB dibuka)
+      - "4318:4318"     # OTLP HTTP collector (opsional, kalau mau pakai HTTP/proto)
+      - "14268:14268"   # Legacy HTTP collector
+      - "14250:14250"   # Legacy gRPC collector
+      - "6831:6831/udp" # Jaeger agent UDP
+      - "6832:6832/udp" # Jaeger agent UDP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - LOG_LEVEL=debug
+    volumes:
+      - jaeger-data:/tmp
+    networks:
+      - tracing
+
+networks:
+  tracing:
+    driver: bridge
+
+volumes:
+  jaeger-data:
