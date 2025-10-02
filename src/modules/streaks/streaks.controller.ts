@@ -1,12 +1,12 @@
-import { Hono } from "hono"
-import { roleMiddleware } from "../../lib/middleware/middleware.js";
-import { StreaksRepository } from "./streaks.repository.js";
-import { appResponse } from "../../lib/response.js";
-import { FOUND, NOT_FOUND, SOMETHING_WHEN_WRONG } from "../../lib/constant.js";
-import { logger } from "../../config/logging.js";
-import { zValidator } from "@hono/zod-validator";
-import { streakValidator } from "./streaks.validator.js";
-import { UserRepository } from "../user/user.repository.js";
+import { Hono } from 'hono'
+import { roleMiddleware } from '@/lib/middleware/middleware.js'
+import { StreaksRepository } from '@/modules/streaks/streaks.repository.js'
+import { appResponse } from '@/lib/response.js'
+import { FOUND, NOT_FOUND, SOMETHING_WHEN_WRONG } from '@/lib/constant.js'
+import { logger } from '@/config/logging.js'
+import { zValidator } from '@hono/zod-validator'
+import { streakValidator } from '@/modules/streaks/streaks.validator.js'
+import { UserRepository } from '@/modules/user/user.repository.js'
 
 export const streaksController = new Hono()
     .use(

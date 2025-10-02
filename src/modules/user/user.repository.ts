@@ -1,7 +1,7 @@
-import { db } from '../../config/db/index.js'
-import { userTable, type User } from '../../config/db/schema/postgres.js'
-import { JWTService } from '../../lib/middleware/jwt.js'
-import type { BaseRepository } from '../../lib/repository.js'
+import { db } from '@/config/db/index.js'
+import { userTable, type User } from '@/config/db/schema/postgres.js'
+import { JWTService } from '@/lib/middleware/jwt.js'
+import type { BaseRepository } from '@/lib/repository.js'
 import { eq } from 'drizzle-orm'
 
 export interface UserEntity extends User { }

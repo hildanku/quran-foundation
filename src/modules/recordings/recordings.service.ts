@@ -1,7 +1,7 @@
 
-import { logger } from '../../config/logging.js'
-import { StorageService } from '../../lib/storage.js'
-import { withTrace, addEvent } from '../../lib/telemetry.js'
+import { logger } from '@/config/logging.js'
+import { StorageService } from '@/lib/storage.js'
+import { withTrace, addEvent } from '@/lib/telemetry.js'
 
 export class RecordingsService {
     static async uploadRecordingFile(

@@ -5,7 +5,7 @@ import {
     CHAPTERS_ENDPOINT,
     VERSES_BY_CHAPTER_ENDPOINT,
     UTHMANI_VERSES_ENDPOINT
-} from '../../lib/constant.js'
+} from '@/lib/constant.js'
 
 interface TokenResponse {
     access_token: string

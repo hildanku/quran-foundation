@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
-import { streakTable, type Streak } from '../../config/db/schema/postgres.js'
-import type { BaseRepository } from '../../lib/repository.js'
-import { db } from '../../config/db/index.js'
+import { streakTable, type Streak } from '@/config/db/schema/postgres.js'
+import type { BaseRepository } from '@/lib/repository.js'
+import { db } from '@/config/db/index.js'
 
 export interface StreakEntity extends Streak { }
 
