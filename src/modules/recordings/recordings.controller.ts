@@ -1,16 +1,16 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { RecordingsRepository } from './recordings.repository.js'
-import { RecordingsService } from './recordings.service.js'
-import { UserRepository } from '../user/user.repository.js'
-import { appResponse } from '../../lib/response.js'
-import { FOUND, NOT_FOUND, SOMETHING_WHEN_WRONG } from '../../lib/constant.js'
-import { roleMiddleware } from '../../lib/middleware/middleware.js'
-import { logger } from '../../config/logging.js'
-import { recordingValidator, generateUploadUrlValidator } from './recordings.validator.js'
-import { StreaksRepository } from '../streaks/streaks.repository.js'
-import { paginationQueryValidator } from '../../lib/zod.js'
-import { withHttpTrace, withDbTrace, withFileTrace, addEvent } from '../../lib/telemetry.js'
+import { RecordingsRepository } from '@/modules/recordings/recordings.repository.js'
+import { RecordingsService } from '@/modules/recordings/recordings.service.js'
+import { UserRepository } from '@/modules/user/user.repository.js'
+import { appResponse } from '@/lib/response.js'
+import { FOUND, NOT_FOUND, SOMETHING_WHEN_WRONG } from '@/lib/constant.js'
+import { roleMiddleware } from '@/lib/middleware/middleware.js'
+import { logger } from '@/config/logging.js'
+import { recordingValidator, generateUploadUrlValidator } from '@/modules/recordings/recordings.validator.js'
+import { StreaksRepository } from '@/modules/streaks/streaks.repository.js'
+import { paginationQueryValidator } from '@/lib/zod.js'
+import { withHttpTrace, withDbTrace, withFileTrace, addEvent } from '@/lib/telemetry.js'
 
 export const recordingsController = new Hono()
     .use(
@@ -53,7 +53,7 @@ export const recordingsController = new Hono()
                     })
                 }
 
-                addEvent('recording.list_by_user.success', { 
+                addEvent('recording.list_by_user.success', {
                     count: result.data.length,
                     page,
                     limit
@@ -64,8 +64,8 @@ export const recordingsController = new Hono()
                     metadata: result.metadata
                 })
             } catch (error) {
-                addEvent('recording.list_by_user.error', { 
-                    error: error instanceof Error ? error.message : 'unknown' 
+                addEvent('recording.list_by_user.error', {
+                    error: error instanceof Error ? error.message : 'unknown'
                 })
                 logger.error(error)
                 return appResponse(c, 500, SOMETHING_WHEN_WRONG, null)
@@ -199,7 +199,7 @@ export const recordingsController = new Hono()
                     size: buffer.length,
                 }
 
-                addEvent('recording.upload.file_parsed', { 
+                addEvent('recording.upload.file_parsed', {
                     filename: audioFile.name,
                     size: buffer.length,
                     mimetype: audioFile.type
@@ -262,15 +262,15 @@ export const recordingsController = new Hono()
                             last_recorded_at: Math.floor(Date.now() / 1000),
                         })
                     )
-                    addEvent('recording.upload.streak_updated', { 
-                        userId, 
-                        oldStreak: getStreak.current_streak, 
-                        newStreak: newCurrentStreak 
+                    addEvent('recording.upload.streak_updated', {
+                        userId,
+                        oldStreak: getStreak.current_streak,
+                        newStreak: newCurrentStreak
                     })
                 }
 
-                addEvent('recording.upload.success', { 
-                    recordId: record.id, 
+                addEvent('recording.upload.success', {
+                    recordId: record.id,
                     userId,
                     chapterId: chapterId || 0
                 })
@@ -280,8 +280,8 @@ export const recordingsController = new Hono()
                     fileUrl: uploadResult.fileUrl,
                 })
             } catch (error) {
-                addEvent('recording.upload.error', { 
-                    error: error instanceof Error ? error.message : 'unknown' 
+                addEvent('recording.upload.error', {
+                    error: error instanceof Error ? error.message : 'unknown'
                 })
                 logger.error('Upload error di controller164:', error)
                 return appResponse(c, 500, 'Failed to upload recording', null)

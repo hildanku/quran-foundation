@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
-import { appResponse } from '../../lib/response.js'
-import { SOMETHING_WHEN_WRONG } from '../../lib/constant.js'
-import { logger } from '../../config/logging.js'
-import { fetchChapters, fetchVersesByChapter, fetchUthmanVersesByChapter } from './surahs.service.js'
+import { appResponse } from '@/lib/response.js'
+import { SOMETHING_WHEN_WRONG } from '@/lib/constant.js'
+import { logger } from '@/config/logging.js'
+import { fetchChapters, fetchVersesByChapter, fetchUthmanVersesByChapter } from '@/modules/surahs/surahs.service.js'
 
 export const surahsController = new Hono()
     .get('/', async (c) => {

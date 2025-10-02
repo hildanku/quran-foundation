@@ -1,8 +1,7 @@
-
-import { db } from '../../config/db/index.js'
-import { recordingTable, type Recording } from '../../config/db/schema/postgres.js'
-import { JWTService } from '../../lib/middleware/jwt.js'
-import type { BaseRepository } from '../../lib/repository.js'
+import { db } from '@/config/db/index.js'
+import { recordingTable, type Recording } from '@/config/db/schema/postgres.js'
+import { JWTService } from '@/lib/middleware/jwt.js'
+import type { BaseRepository } from '@/lib/repository.js'
 import { eq, count, desc } from 'drizzle-orm'
 
 export interface PaginationMetadata {

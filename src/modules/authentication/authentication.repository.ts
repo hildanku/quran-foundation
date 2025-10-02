@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm"
-import { authenticationTable, type Authentication } from "../../config/db/schema/postgres.js"
-import type { BaseRepository } from "../../lib/repository.js"
-import { db } from "../../config/db/index.js"
+import { eq } from 'drizzle-orm'
+import { authenticationTable, type Authentication } from '@/config/db/schema/postgres.js'
+import type { BaseRepository } from '@/lib/repository.js'
+import { db } from '@/config/db/index.js'
 
 type FindByUser = {
     user: number // <- user id
@@ -20,7 +20,7 @@ export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity 
         const now = Math.floor(Date.now() / 1000)
 
         if (!data || !data.hash_password) {
-            throw new Error("hash_password is required");
+            throw new Error("hash_password is required")
         }
 
         const result = await db
@@ -32,7 +32,7 @@ export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity 
                 created_at: now,
                 updated_at: now
             })
-            .returning();
+            .returning()
 
         return result.length > 0 ? result[0] : null
     }
@@ -52,7 +52,7 @@ export class AuthenticationRepository implements Omit<BaseRepository<AuthEntity 
         const now = Math.floor(Date.now() / 1000)
 
         if (!data) {
-            throw new Error("No data provided for update");
+            throw new Error("No data provided for update")
         }
 
         const updated = await db
