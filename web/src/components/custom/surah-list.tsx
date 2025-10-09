@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BookOpen, MapPin, RefreshCw, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { useState, useMemo, useEffect } from "react"
-import type { Surah } from "@/types"
+import type { Surah, SurahsResponse } from "@/types"
 
 interface SurahListProps {
     className?: string
@@ -51,11 +51,13 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
         error,
         refetch,
         isRefetching,
-    } = useQuery({
+            } = useQuery<SurahsResponse>({
         queryKey: ["surahs"],
-        queryFn: async () => {
-            const res = await client.api.v1.surahs.$get()
-            return res.json()
+        queryFn: async (): Promise<SurahsResponse> => {
+            const res = await client.api.v1.surahs.$get({}, {
+                
+            })
+            return res.json() as Promise<SurahsResponse>
         },
         staleTime: 1000 * 60 * 60, // 1h
         gcTime: 1000 * 60 * 60 * 24, // 24h
@@ -65,7 +67,7 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
     const filteredAndSortedSurahs = useMemo(() => {
         const surahs = data?.result?.chapters || []
 
-        let filtered = surahs.filter((surah: any) => {
+        let filtered = surahs.filter((surah: Surah) => {
 
             const matchesSearch = searchQuery === "" ||
                 surah.name_simple.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -80,7 +82,7 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
         })
 
         // Sort logic
-        return filtered.sort((a: any, b: any) => {
+        return filtered.sort((a: Surah, b: Surah) => {
             switch (sortBy) {
                 case "name":
                     return a.name_simple.localeCompare(b.name_simple)
@@ -346,7 +348,7 @@ export function SurahList({ className, onSurahClick }: SurahListProps) {
                 ) : (
                     <>
                         {/* Current page results */}
-                        {currentPageSurahs.map((surah: any) => (
+                        {currentPageSurahs.map((surah: Surah) => (
                             <Card
                                 key={surah.id}
                                 className="transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer border-l-4 border-l-primary/20 hover:border-l-primary"

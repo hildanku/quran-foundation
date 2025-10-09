@@ -17,5 +17,12 @@
                 "./src/*"
             ],
         },
-    }
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "web/**/*",
+        "node_modules"
+    ]
 }

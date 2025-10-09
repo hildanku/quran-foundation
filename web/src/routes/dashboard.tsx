@@ -5,8 +5,8 @@ import { useAuth } from '@/lib/stores/auth'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { BookOpen, Mic, Settings, User, LogOut } from 'lucide-react'
-import { client } from '@/lib/rpc'
 import { appFetch } from '@/lib/app-fetch'
+import { BASE_URL } from '@/lib/constant'
 import { StreakCounter } from '@/components/custom/streak-counter'
 import { RecordingHistory } from '@/components/custom/recording-history'
 import { ProgressCalendar } from '@/components/custom/progress-calendar'
@@ -37,17 +37,7 @@ function DashboardPage() {
     } = useQuery({
         queryKey: ['recordings'],
         queryFn: async () => {
-            const response = await client.api.v1.recordings.user.$get(
-                {
-                    query: {
-                        limit: '10',
-                        page: '1'
-                    }
-                },
-                {
-                    fetch: appFetch,
-                }
-            )
+            const response = await appFetch(`${BASE_URL}/api/v1/recordings/user?limit=10&page=1`)
             return response.json()
         },
         retry: (failureCount, error: any) => {
@@ -69,12 +59,7 @@ function DashboardPage() {
     } = useQuery({
         queryKey: ['streaks'],
         queryFn: async () => {
-            const response = await client.api.v1.streaks.user.$get(
-                {},
-                {
-                    fetch: appFetch,
-                }
-            )
+            const response = await appFetch(`${BASE_URL}/api/v1/streaks/user`)
             return response.json()
         },
         retry: (failureCount, error: any) => {
@@ -222,7 +207,7 @@ function DashboardPage() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs sm:text-sm text-muted-foreground">This Month</span>
                                         <span className="font-medium text-sm sm:text-base">
-                                            {recordings?.filter((r) => new Date(r.created_at * 1000).getMonth() === new Date().getMonth()).length ?? 0}
+                                            {recordings?.filter((r: any) => new Date(r.created_at * 1000).getMonth() === new Date().getMonth()).length ?? 0}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">

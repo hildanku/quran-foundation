@@ -14,6 +14,8 @@ export interface UseMediaRecorderReturn {
     resumeRecording: () => void
     clearRecording: () => void
     error: string | null
+    checkMicrophonePermission: () => Promise<void>
+    permissionStatus: 'unknown' | 'granted' | 'denied' | 'prompt'
 }
 
 export function useMediaRecorder(): UseMediaRecorderReturn {
@@ -23,6 +25,7 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
     const [audioUrl, setAudioUrl] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [permissionStatus, setPermissionStatus] = useState<'unknown' | 'granted' | 'denied' | 'prompt'>('unknown')
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null)
     const streamRef = useRef<MediaStream | null>(null)
@@ -45,6 +48,32 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
     const startRecording = useCallback(async () => {
         try {
             setError(null)
+
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("Your browser doesn't support microphone access")
+            }
+
+            // Check microphone permission first
+            try {
+                const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName })
+                setPermissionStatus(permission.state as any)
+                
+                if (permission.state === 'denied') {
+                    setError("Microphone access denied. Please enable microphone permissions in your browser settings.")
+                    return
+                }
+
+                if (permission.state === 'prompt') {
+                    // Show user-friendly message before requesting permission
+                    setError("Please allow microphone access when prompted to start recording.")
+                }
+            } catch (permErr) {
+                // Some browsers don't support permissions API, continue with getUserMedia
+                console.warn("Permissions API not supported, continuing with getUserMedia", permErr)
+                setPermissionStatus('unknown')
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -52,6 +81,10 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
                     sampleRate: 44100,
                 },
             })
+
+            // Clear any permission-related error once we get the stream
+            setError(null)
+            setPermissionStatus('granted')
 
             streamRef.current = stream
             chunksRef.current = []
@@ -83,9 +116,29 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
             setIsRecording(true)
             setRecordingTime(0)
             startTimer()
-        } catch (err) {
-            setError("Failed to access microphone. Please check permissions.")
+        } catch (err: any) {
             console.error("Error starting recording:", err)
+            
+            // Handle specific getUserMedia errors
+            switch (err.name) {
+                case 'NotAllowedError':
+                case 'PermissionDeniedError':
+                    setError("Microphone access denied. Please click the microphone icon in your browser's address bar and allow access, then try again.")
+                    break
+                case 'NotFoundError':
+                case 'DevicesNotFoundError':
+                    setError("No microphone found. Please connect a microphone and try again.")
+                    break
+                case 'NotSupportedError':
+                    setError("Your browser doesn't support audio recording. Please try using Chrome, Firefox, or Safari.")
+                    break
+                case 'NotReadableError':
+                    setError("Microphone is being used by another application. Please close other apps using the microphone and try again.")
+                    break
+                default:
+                    setError(err.message || "Failed to access microphone. Please check your browser settings and try again.")
+                    break
+            }
         }
     }, [startTimer])
 
@@ -124,6 +177,28 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
         setError(null)
     }, [audioUrl])
 
+    const checkMicrophonePermission = useCallback(async () => {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setError("Your browser doesn't support microphone access")
+                setPermissionStatus('denied')
+                return
+            }
+
+            const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName })
+            setPermissionStatus(permission.state as any)
+
+            // Listen for permission changes
+            permission.onchange = () => {
+                setPermissionStatus(permission.state as any)
+            }
+
+        } catch (error) {
+            console.warn("Permissions API not supported", error)
+            setPermissionStatus('unknown')
+        }
+    }, [])
+
     return {
         isRecording,
         isPaused,
@@ -136,5 +211,7 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
         resumeRecording,
         clearRecording,
         error,
+        checkMicrophonePermission,
+        permissionStatus,
     }
 }
