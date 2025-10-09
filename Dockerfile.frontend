@@ -5,10 +5,10 @@ WORKDIR /app
 
 # Copy root package.json for backend dependencies (hono, etc.)
 COPY package.json ./
-COPY bun.lock ./
+# COPY bun.lock ./
 
 COPY web/package*.json ./web/
-COPY web/bun.lock ./web/
+# COPY web/bun.lock ./web/
 
 RUN npm install
 

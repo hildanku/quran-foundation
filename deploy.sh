@@ -16,6 +16,11 @@ if ! command -v docker compose &> /dev/null; then
     exit 1
 fi
 
+# Create necessary directories
+echo "Creating necessary directories..."
+mkdir -p uploads
+mkdir -p logs
+
 # Set environment variables
 if [ ! -f .env ]; then
     echo ".env file not found. Please create it with your production environment variables."
@@ -36,6 +41,9 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Removing old Docker images..."
     docker system prune -f
 fi
+
+echo "Jaeger for tracing is enabled. Ensure you have the Jaeger agent running."
+docker compose -f docker-compose.jaeger.yml up -d
 
 # Build and start containers
 echo "Building and starting containers..."

@@ -3,7 +3,7 @@ FROM node:24-alpine
 WORKDIR /app
 
 COPY package*.json ./
-COPY bun.lock ./
+# COPY bun.lock ./
 RUN npm install
 
 # Copy backend source code only (exclude web folder)
