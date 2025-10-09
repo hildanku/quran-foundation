@@ -7,7 +7,7 @@ services:
       # Enable Docker provider
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=app-network
+      - --providers.docker.network=production-traefik_app-network
       
       # Entry points
       - --entrypoints.web.address=:80
@@ -124,7 +124,7 @@ services:
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
-      - "traefik.docker.network=app-network"
+      - "traefik.docker.network=production-traefik_app-network"
 
   # Frontend with Nginx
   frontend:
@@ -139,10 +139,11 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "-s", "http://localhost:80"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
     networks:
       - app-network
     labels:
@@ -152,7 +153,7 @@ services:
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
-      - "traefik.docker.network=app-network"
+      - "traefik.docker.network=production-traefik_app-network"
 
 volumes:
   pgdata:

@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mic, Square, Play, Pause, Trash2, Upload, AlertCircle, Settings } from "lucide-react"
+import { Mic, Square, Play, Pause, Trash2, Upload, AlertCircle } from "lucide-react"
 import { useEffect } from "react"
 import type { UseMediaRecorderReturn } from "@/hooks/use-media-recorder"
 
