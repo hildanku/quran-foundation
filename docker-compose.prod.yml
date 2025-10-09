@@ -1,4 +1,52 @@
 services:
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    restart: unless-stopped
+    command:
+      # Enable Docker provider
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=app-network
+      
+      # Entry points
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      
+      # Redirect HTTP to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      
+      # Let's Encrypt configuration
+      - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      
+      # Enable dashboard (optional, for debugging)
+      - --api.dashboard=true
+      - --api.insecure=false
+      
+      # Logging
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - app-network
+    labels:
+      # Dashboard configuration (optional)
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN_FRONTEND}`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
@@ -53,6 +101,14 @@ services:
       retries: 3
     networks:
       - app-network
+    labels:
+      # Traefik configuration for backend
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN_BACKEND}`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+      - "traefik.docker.network=app-network"
 
   # Frontend with Nginx
   frontend:
@@ -60,11 +116,10 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        VITE_BACKEND_URL: ""
+        VITE_BACKEND_URL: "https://${DOMAIN_BACKEND}"
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    expose:
+      - "80"
     depends_on:
       - backend
     healthcheck:
@@ -74,10 +129,19 @@ services:
       retries: 3
     networks:
       - app-network
+    labels:
+      # Traefik configuration for frontend
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN_FRONTEND}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.docker.network=app-network"
 
 volumes:
   pgdata:
   uploads:
+  letsencrypt:
 
 networks:
   app-network:
