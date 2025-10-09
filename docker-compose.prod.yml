@@ -12,7 +12,6 @@ services:
       # Entry points
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-
       - --entrypoints.websecure.http.tls=true
 
       # Redirect HTTP to HTTPS
@@ -49,7 +48,7 @@ services:
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.service=api@internal"
 
- whoami:
+  whoami:
     image: traefik/whoami
     container_name: whoami
     restart: unless-stopped
