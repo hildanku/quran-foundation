@@ -3,9 +3,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mic, Square, Play, Pause, Trash2, Upload } from "lucide-react"
-//import type { UseMediaRecorderReturn } from "@/hooks/use-media-recorder"
-//import { AudioVisualizer } from "./audio-visualizer"
+import { Mic, Square, Play, Pause, Trash2, Upload, AlertCircle, Settings } from "lucide-react"
+import { useEffect } from "react"
 import type { UseMediaRecorderReturn } from "@/hooks/use-media-recorder"
 
 interface RecordingControlsProps {
@@ -27,7 +26,14 @@ export function RecordingControls({ recorder, onSubmit, isSubmitting }: Recordin
         resumeRecording,
         clearRecording,
         error,
+        checkMicrophonePermission,
+        permissionStatus,
     } = recorder
+
+    // Check microphone permission on component mount
+    useEffect(() => {
+        checkMicrophonePermission()
+    }, [checkMicrophonePermission])
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60)
@@ -68,14 +74,53 @@ export function RecordingControls({ recorder, onSubmit, isSubmitting }: Recordin
                     </div>
                 )}
 
-                {error && <div className="text-sm text-destructive text-center bg-destructive/10 p-3 rounded-lg">{error}</div>}
+                {error && (
+                    <div className="text-sm text-destructive text-center bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <span className="font-medium">Microphone Access Required</span>
+                        </div>
+                        <p className="mb-3">{error}</p>
+                        {permissionStatus === 'denied' && (
+                            <div className="text-xs space-y-2">
+                                <p className="font-medium">To enable microphone access:</p>
+                                <div className="text-left space-y-1">
+                                    <p>• Click the microphone icon in your browser's address bar</p>
+                                    <p>• Select "Allow" and refresh the page</p>
+                                    <p>• Or go to browser settings and enable microphone for this site</p>
+                                </div>
+                            </div>
+                        )}
+                        {permissionStatus === 'prompt' && (
+                            <div className="text-xs">
+                                <p>Click "Start Recording" and allow microphone access when prompted.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex justify-center gap-3">
                     {!isRecording && !audioBlob && (
-                        <Button onClick={startRecording} size="lg" className="flex items-center gap-2">
-                            <Mic className="h-5 w-5" />
-                            Start Recording
-                        </Button>
+                        <div className="space-y-3 w-full">
+                            {permissionStatus === 'unknown' && !error && (
+                                <div className="text-sm text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
+                                    <div className="flex items-center justify-center gap-2 mb-1">
+                                        <Mic className="h-4 w-4" />
+                                        <span>Ready to Record</span>
+                                    </div>
+                                    <p>Click the button below to start recording your Quran recitation.</p>
+                                </div>
+                            )}
+                            <Button 
+                                onClick={startRecording} 
+                                size="lg" 
+                                className="flex items-center gap-2 w-full"
+                                disabled={permissionStatus === 'denied'}
+                            >
+                                <Mic className="h-5 w-5" />
+                                Start Recording
+                            </Button>
+                        </div>
                     )}
 
                     {isRecording && (
