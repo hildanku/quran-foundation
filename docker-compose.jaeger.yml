@@ -17,11 +17,11 @@ services:
     volumes:
       - jaeger-data:/tmp
     networks:
-      - tracing
+      - production-traefik_app-network
 
 networks:
-  tracing:
-    driver: bridge
+  production-traefik_app-network:
+    external: true
 
 volumes:
   jaeger-data:
